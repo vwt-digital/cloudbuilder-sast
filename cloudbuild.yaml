@@ -1,0 +1,10 @@
+steps:
+  # Build an image
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "--tag=eu.gcr.io/$PROJECT_ID/sast-scan", "."]
+  # Test the image
+  - name: "eu.gcr.io/${PROJECT_ID}/sast-scan"
+    args: ["--help"]
+
+# Push the image
+images: ["eu.gcr.io/$PROJECT_ID/sast-scan"]
