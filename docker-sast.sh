@@ -19,7 +19,7 @@ do
         echo "Usage:"
         echo "required arguments:"
         echo
-        echo "--type: what sast test to run (options: frontend, backend)"
+#        echo "--type: what sast test to run (options: frontend, backend)"
         echo "--target: the target to run on"
         echo
         echo "optional arguments:"
@@ -32,7 +32,7 @@ do
         echo "--no_flake8: disable flake8 scan"
         echo "--no_yamllint: disable yamllint linter"
         echo
-        echo "backend:"
+#        echo "backend:"
         #TODO: backend commands
         exit 0
         ;;
