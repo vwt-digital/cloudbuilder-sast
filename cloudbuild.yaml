@@ -3,8 +3,8 @@ steps:
   - name: "gcr.io/cloud-builders/docker"
     args: ["build", "--tag=eu.gcr.io/$PROJECT_ID/cloudbuilder-sast", "."]
   # Test the image
-  - name: "eu.gcr.io/${PROJECT_ID}/sast-scan"
+  - name: "eu.gcr.io/${PROJECT_ID}/cloudbuilder-sast"
     args: ["--help"]
 
 # Push the image
-images: ["eu.gcr.io/$PROJECT_ID/sast-scan"]
+images: ["eu.gcr.io/$PROJECT_ID/cloudbuilder-sast"]
