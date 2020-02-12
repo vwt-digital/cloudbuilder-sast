@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-# usage docker run -v <directory to run from>:"$(pwd) <image_name> --target "$(pwd)"
-
 # keep exit values after pipe: this makes it so the build step will correctly exit with error if one of the tests fails
 set -o pipefail
 shopt -s globstar
