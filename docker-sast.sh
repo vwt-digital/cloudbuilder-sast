@@ -5,14 +5,15 @@ set -o pipefail
 shopt -s globstar
 exit_code=0
 
+# exit if arguments are empty
 if [[ "$#" -eq 0 ]]; then
   printf "No arguments given \n"
   exit 0
 fi
 
 out_dir=$("pwd")/sast_output/
-recursive=false
 declare -a types
+# Parse arguments
 while :
 do
   case "$1" in
@@ -21,11 +22,10 @@ do
     echo "required arguments:"
     echo
     echo "--type: what sast tests to run. This argument can be added multiple times. (options: python, typescript)"
-    echo "--target: the target to run on"
+    echo "--target: the target to run on. SAST-scan will automatically run recursively on folders"
     echo
     echo "optional arguments:"
     echo
-    echo "--recursive: execute SAST recursively"
     echo "--help: print usage and exit"
     echo "--no_out_dir: disable creation of output directory"
     echo "--out_dir: location for output files (Default: \$pwd/sast_output)"
@@ -48,10 +48,6 @@ do
   --target)
     target=$2
     shift 2
-    ;;
-  --recursive)
-    recursive=true
-    shift 1
     ;;
   --no_out_dir)
     no_out_dir=true
@@ -95,12 +91,19 @@ do
     ;;
   esac
 done
-
+# Check if target is set
 [ -z "$target" ] && echo "target not set" && exit 1
+
+# Execute recursively on folders
+if [[ -d "$target" ]]; then
+  recursive=true
+elif [[  -f "$target" ]]; then
+  recursive=false
+fi
 
 ### Create test output directory ###
 mkdir "$out_dir"
-#if [[ $recursive = false]]; then
+
 ### Shell lint ###
 [ -z "$no_shellcheck" ] && printf ">> shellcheck...\n" && find "$target" -name "*.sh" -exec shellcheck {} --shell=bash \;| tee -a "$out_dir"/output_shellcheck || exit_code=1
 
@@ -142,7 +145,9 @@ fi
 # FIXME: This is a pretty bad solution to the no_out_dir problem.
 # FIXME: A better solution would be to simply not create out_dir,
 # FIXME: but this causes every tee call to fail since out_dir does not exist
+# if no_out_dir is set, remove out_dir
 if [ -z "$no_out_dir" ]; then
   rm -rf "$out_dir"
 fi
+
 exit $exit_code
