@@ -29,7 +29,7 @@ steps:
       - '-c'
       - |
         set eou pipefail
-        gcloud scheduler jobs delete --quiet ${REPO_NAME}-weekly-rebuild || exit 0'
+        gcloud scheduler jobs delete --quiet ${REPO_NAME}-weekly-rebuild || exit 0
   # Create weekly rebuild scheduled job
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
