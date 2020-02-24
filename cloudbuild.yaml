@@ -16,15 +16,20 @@ steps:
       - '-c'
       - |
         set -eou pipefail
-        for digest in $(gcloud container images list-tags eu.gcr.io/$PROJECT_ID/cloudbuilder-sast --limit=99999 --sort-by=TIMESTAMP --format='get(digest)' | head -n-10); do
-          gcloud container images delete -q --force-delete-tags "eu.gcr.io/$PROJECT_ID/cloudbuilder-sast@$${digest}"
+        for digest in $(gcloud container images list-tags \
+        eu.gcr.io/$PROJECT_ID/cloudbuilder-sast --limit=99999 \
+        --sort-by=TIMESTAMP --format='get(digest)' | head -n-10); do
+          gcloud container images delete -q --force-delete-tags \
+        "eu.gcr.io/$PROJECT_ID/cloudbuilder-sast@$${digest}"
         done
   # Delete weekly rebuild scheduled job to allow recreation
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
-      - 'gcloud scheduler jobs delete --quiet ${REPO_NAME}-weekly-rebuild || exit 0'
+      - |
+        set eou pipefail
+        gcloud scheduler jobs delete --quiet ${REPO_NAME}-weekly-rebuild || exit 0'
   # Create weekly rebuild scheduled job
   - name: 'gcr.io/cloud-builders/gcloud'
     args:

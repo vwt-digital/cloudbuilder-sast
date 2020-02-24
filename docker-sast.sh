@@ -11,7 +11,6 @@ if [[ "$#" -eq 0 ]]; then
   exit 0
 fi
 
-out_dir=$("pwd")/sast_output/
 declare -a types
 # Parse arguments
 while :
@@ -21,14 +20,12 @@ do
     echo "Usage:"
     echo "required arguments:"
     echo
-    echo "--type: what sast tests to run. This argument can be added multiple times. (options: python, typescript)"
     echo "--target: the target to run on. SAST-scan will automatically run recursively on folders"
     echo
     echo "optional arguments:"
     echo
     echo "--help: print usage and exit"
-    echo "--no_out_dir: disable creation of output directory"
-    echo "--out_dir: location for output files (Default: \$pwd/sast_output)"
+    echo "--type: what sast tests to run. This argument can be added multiple times. (options: python, typescript)"
     echo "--no_shellcheck: disable shellcheck linter"
     echo "--no_yamllint: disable yamllint"
     echo "--no-jsonlint: disable jsonlint"
@@ -47,14 +44,6 @@ do
     ;;
   --target)
     target=$2
-    shift 2
-    ;;
-  --no_out_dir)
-    no_out_dir=true
-    shift 1
-    ;;
-  --out_dir)
-    out_dir=$2
     shift 2
     ;;
   --no-shellcheck)
@@ -97,53 +86,79 @@ done
 
 # Execute recursively on folders
 if [[ -d "$target" ]]; then
-  recursive=true
+  target_type="directory"
 elif [[  -f "$target" ]]; then
-  recursive=false
+  target_type="file"
 fi
 
-### Create test output directory ###
-[[ $no_out_dir == true ]] || mkdir "$out_dir"
-
-### Shell lint ###
-[ -z "$no_shellcheck" ] && printf ">> shellcheck...\n" && find "$target" -name "*.sh" -exec shellcheck {} --shell=bash \; | ( [[ $no_out_dir == false ]] && tee -a "$out_dir"/output_shellcheck || cat ) || exit_code=1
-
-### Yaml lint ###
-[[ -z "$no_yamllint" ]] && printf ">> yamllint...\n"
-if [[ $recursive == true || "${target: -5}" == ".yaml" ]]; then
-  yamllint "$target" | ( [[ $no_out_dir == false ]] && tee -a "$out_dir"/output_shellcheck || cat ) || exit_code=1
+########################## ShellCheck ######################################
+if [[ -z "$no_shellcheck" ]]; then
+  printf ">> shellcheck...\n";
+  if [[ $target_type == "directory" ]]; then
+    for f in "$target"/**/*.sh; do
+       # if glob does not match, stop execution
+       [[ -e "$f" ]] || continue
+       shellcheck "$f" --shell=bash || exit_code=1
+    done
+  elif [[ "${target: -3}" == ".sh" ]]; then
+    shellcheck "$target" || exit_code=1
+  fi
 fi
-### jsonlint ###
-[ -z "$no_jsonlint" ] && printf ">> jsonlint...\n" && find "$target" -name "*.json" -exec jsonlint {} -q \; | ( [[ $no_out_dir == false ]] && tee -a "$out_dir"/output_shellcheck || cat ) || exit_code=1
+
+########################## Yaml lint ######################################
+if [[ -z "$no_yamllint" ]]; then
+  printf ">> yamllint...\n"
+  if [[ $target_type == "directory" || "${target: -5}" == ".yaml" ]]; then
+      # Replace -d with config file if more custom rules are added
+      yamllint "$target" -d "{extends: default, rules: {line-length: {max: 120}}}" || exit_code=1
+  fi
+fi
+
+
+########################## JSONLint ######################################
+if [[ -z "$no_jsonlint" ]]; then
+  printf ">> jsonlint...\n"
+  if [[ $target_type == "directory" ]]; then
+    for f in "$target"/**/*.json; do
+      # if glob does not match, stop execution
+      [[ -e "$f" ]] || continue
+      jsonlint -q "$f" || exit_code=1;
+    done
+  elif [[ "${target: -5}" == ".json" ]]; then
+    jsonlint -q "$target" || exit_code=1
+  fi
+fi
 
 if [[ " ${types[*]} " =~ 'python' ]]; then
-  ### Bandit check ###
+############################# Bandit #####################################
   # installing bandit through pip3 instead of pip causes -q (quiet) to fail
-  [ -z "$no_bandit" ] && printf ">> bandit...\n" && \
-  if [[ $recursive == true ]]; then
-    bandit -r -q -l "$target"/**/*.py;
-  elif [ "${target: -3}" == ".py" ]; then
-    bandit -q -l "$target";
-  fi \
-  | ( [[ $no_out_dir == false ]] && tee -a "$out_dir"/output_shellcheck || cat ) || exit_code=1
+  if [[ -z "$no_bandit" ]]; then
+    printf ">> bandit...\n"
+    if [[ $target_type == "directory" ]]; then
+      bandit -r -q -l "$target" || exit_code=1
+    elif [[ "${target: -3}" == ".py" ]]; then
+      bandit -q -l "$target" || exit_code=1
+    fi
+  fi
 
-  ### Python lint ###
+############################# Flake8 #####################################
   [[ -z "$no_flake8" ]] && printf ">> flake8...\n"
-  if [[ "$recursive" == true || "${target: -3}" == ".py" ]]; then
-    flake8 --max-line-length=139 "$target" | ( [[ $no_out_dir == false ]] && tee -a "$out_dir"/output_shellcheck || cat ) || exit_code=1
+  if [[ $target_type == "directory" || "${target: -3}" == ".py" ]]; then
+    flake8 --max-line-length=139 "$target"
   fi
 fi
 
 if [[ " ${types[*]} " =~ 'typescript' ]]; then
-  ### typescript linter ###
-  [ -z "$no_tslint" ] && printf ">> tslint...\n" &&\
-   tslint --init &&\
-    if [[ $recursive == true ]]; then
-      tslint "$target"/**/*.ts
-    elif [ "${target: -3}" == ".ts" ]; then
-      tslint "$target"
-    fi \
-    | ( [[ $no_out_dir == false ]] && tee -a "$out_dir"/output_shellcheck || cat ) || exit_code=1
+############################# TSLint #####################################
+  if [[ -z "$no_tslint" ]]; then
+    printf ">> tslint...\n"
+    tslint --init || exit_code=1
+    if [[ $target_type == "directory" ]]; then
+      tslint "$target"/**/*.ts || exit_code=1
+    elif [[ "${target: -3}" == ".ts" ]]; then
+      tslint "$target" || exit_code=1
+    fi
+fi
 
   # remove config file generated by tslint --init
   rm tslint.json

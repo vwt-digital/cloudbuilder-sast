@@ -6,7 +6,7 @@ This container runs a SAST scan with support for Google Cloud.
 Locally with only Docker: 
 ```shell script
 foo@bar:cloudbuilder-sast$ docker build . -t <image_name>
-docker run -v <directory to run from>:"$(pwd) <image_name> --target "$(pwd)"
+docker run -v <directory to run from>:/tmp <image_name> --target /tmp
 ```
 Including this container in a Cloudbuild config file:
 ```yaml
