@@ -18,15 +18,17 @@ do
     echo "Usage:"
     echo "required arguments:"
     echo
-    echo "--target: the target to run on. SAST-scan will automatically run recursively on folders"
+    echo "--target TARGET: the target to run on. SAST-scan will automatically run recursively on folders"
     echo
     echo "optional arguments:"
     echo
     echo "--help: print usage and exit"
-    echo "--type: what sast tests to run. This argument can be added multiple times. (options: python, typescript)"
+    echo "--type TYPE: what sast tests to run. This argument can be added multiple times (options: python, typescript)."
     echo "--no_shellcheck: disable shellcheck linter"
     echo "--no_yamllint: disable yamllint"
     echo "--no-jsonlint: disable jsonlint"
+    echo
+    echo "--trufflehog: TARGET: if set, will run trufflehog on TARGET (options: git url, git repo)."
     echo
     echo "backend:"
     echo "--no_bandit: disable bandit scan"
@@ -55,6 +57,10 @@ do
   --no-yamllint)
     no_yamllint=true
     shift 1
+    ;;
+  --trufflehog)
+    trufflehog_target=$2
+    shift 2
     ;;
   --no-flake8)
     no_flake8=true
@@ -90,6 +96,7 @@ elif [[  -f "$target" ]]; then
 else
   echo "target does not exist" && exit 1
 fi
+
 
 ########################## ShellCheck ######################################
 if [[ -z "$no_shellcheck" ]]; then
@@ -128,6 +135,13 @@ if [[ -z "$no_jsonlint" ]]; then
   elif [[ "${target: -5}" == ".json" ]]; then
     jsonlint -q "$target" || exit_code=1
   fi
+fi
+
+
+########################## Trufflehog ####################################
+if [[ -n "$trufflehog_target" ]]; then
+  printf  ">> trufflehog...\n"
+  trufflehog --cleanup --entropy=true "$trufflehog_target" || exit_code=1
 fi
 
 
