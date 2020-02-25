@@ -159,9 +159,11 @@ if [[ " ${types[*]} " =~ 'python' ]]; then
 
 
 ############################# Flake8 #####################################
-  [[ -z "$no_flake8" ]] && printf ">> flake8...\n"
-  if [[ $target_type == "directory" || "${target: -3}" == ".py" ]]; then
-    flake8 --max-line-length=139 "$target" || exit_code=1
+  if [[ -z "$no_flake8" ]]; then
+    printf ">> flake8...\n"
+    if [[ $target_type == "directory" || "${target: -3}" == ".py" ]]; then
+      flake8 --max-line-length=139 "$target" || exit_code=1
+    fi
   fi
 fi
 
