@@ -24,18 +24,18 @@ do
     echo
     echo "--help: print usage and exit"
     echo "--type TYPE: what sast tests to run. This argument can be added multiple times (options: python, typescript)."
-    echo "--no_shellcheck: disable shellcheck linter"
-    echo "--no_yamllint: disable yamllint"
+    echo "--no-shellcheck: disable shellcheck linter"
+    echo "--no-yamllint: disable yamllint"
     echo "--no-jsonlint: disable jsonlint"
     echo
     echo "--trufflehog: TARGET: if set, will run trufflehog on TARGET (options: git url, git repo)."
     echo
     echo "backend:"
-    echo "--no_bandit: disable bandit scan"
-    echo "--no_flake8: disable flake8 scan"
+    echo "--no-bandit: disable bandit scan"
+    echo "--no-flake8: disable flake8 scan"
     echo
     echo "frontend:"
-    echo "--no_tslint: disable tslint"
+    echo "--no-tslint: disable tslint"
     exit 0
     ;;
   --type)
