@@ -1,0 +1,16 @@
+---
+# A list of tasty fruits
+- Apple
+- Orange
+- Strawberry
+- Mango
+- include_newlines: |
+            exactly as you see
+            will appear these three
+            lines of poetry
+---
+"menuitem": [
+      {"value": "New", "onclick": "CreateNewDoc()"},
+      {"value": "Open", "onclick": "OpenDoc()"},
+      {"value": "Close", "onclick": "CloseDoc()"},
+]
