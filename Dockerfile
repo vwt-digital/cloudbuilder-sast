@@ -16,10 +16,10 @@ RUN npm install -g typescript \
 ARG CACHEBUST=1
 
 COPY docker-sast.sh docker-sast.sh
-#COPY test.py test.py
-#ADD tests tests
-#
-#RUN ["python3", "test.py"]
+COPY test.py test.py
+ADD tests tests
+
+RUN ["python3", "test.py"]
 
 ARG CACHEBUST=0
 
