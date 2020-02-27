@@ -23,4 +23,5 @@ RUN ["python3", "test.py"]
 
 ARG CACHEBUST=0
 
+COPY docker-sast.sh /usr/local/bin/
 ENTRYPOINT ["bash", "docker-sast.sh"]
