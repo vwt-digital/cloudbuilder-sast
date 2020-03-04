@@ -9,14 +9,16 @@ if [[ "$#" -eq 0 ]]; then
   exit 0
 fi
 
-declare -a types
+possible_args=["--target" "--help" "--type" "--no-shellcheck" "--no-yamllint" "--no-jsonlint" "--trufflehog" "--no-bandit" "--no-flake8" "--no-tslint"]
+
+declare types
 # Parse arguments
 while :
 do
   case "$1" in
   --help)
     echo "Usage:"
-    echo "required arguments:"
+    echo "positional arguments:"
     echo
     echo "--target TARGET: the target to run on. SAST-scan will automatically run recursively on folders"
     echo
@@ -28,7 +30,9 @@ do
     echo "--no-yamllint: disable yamllint"
     echo "--no-jsonlint: disable jsonlint"
     echo
-    echo "--trufflehog: TARGET: if set, will run trufflehog on TARGET (options: git url, git repo)."
+    echo "--trufflehog ARGUMENTS: if set, will parse arguments as trufflehog arguments until it finds a docker-sast"\
+         "argument"
+    echo "                        e.g. $ docker-sash.sh --trufflehog --cleanup /git_folder --target /git_folder"
     echo
     echo "backend:"
     echo "--no-bandit: disable bandit scan"
@@ -59,8 +63,15 @@ do
     shift 1
     ;;
   --trufflehog)
-    trufflehog_target=$2
-    shift 2
+    shift 1
+    trufflehog_arguments=()
+    i=0
+    while [[ ! $possible_args == *$1* ]]; do
+        trufflehog_arguments+=("$1")
+        i+=1
+        shift 1
+    done
+    unset i
     ;;
   --no-flake8)
     no_flake8=true
@@ -139,9 +150,9 @@ fi
 
 
 ########################## Trufflehog ####################################
-if [[ -n "$trufflehog_target" ]]; then
+if [[ -n "$trufflehog_arguments" ]]; then
   printf  ">> trufflehog...\n"
-  trufflehog --cleanup --entropy=true "$trufflehog_target" || exit_code=1
+  trufflehog "${trufflehog_arguments[@]}" || exit_code=1
 fi
 
 
