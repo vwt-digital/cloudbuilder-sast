@@ -147,7 +147,7 @@ fi
 
 
 ########################## Trufflehog ####################################
-if [[ -v "${trufflehog_arguments[*]}" ]]; then
+if [[ ! -v "${trufflehog_arguments[*]}" ]]; then
   printf  ">> trufflehog...\n"
   trufflehog "${trufflehog_arguments[@]}" || exit_code=1
 fi
