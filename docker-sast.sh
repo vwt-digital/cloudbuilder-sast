@@ -9,13 +9,14 @@ if [[ "$#" -eq 0 ]]; then
   exit 0
 fi
 
-possible_args=("--target" "--help" "--type" "--no-shellcheck" "--no-yamllint" "--no-jsonlint" "--trufflehog" "--no-bandit" "--no-flake8" "--no-tslint")
+possible_args=("--target" "--help" "--type" "--config" "--no-shellcheck" "--no-yamllint" "--no-jsonlint" "--trufflehog" "--no-bandit" "--no-flake8" "--no-tslint")
 
 declare types
 # Parse arguments
+args=("$@")
 while :
 do
-  case "$1" in
+  case "${args[0]}" in
   --help)
     echo "Usage:"
     echo "positional arguments:"
@@ -26,6 +27,7 @@ do
     echo
     echo "--help: print usage and exit"
     echo "--type TYPE: what sast tests to run. This argument can be added multiple times (options: python, typescript)."
+    echo "--config FILE: location of a config file. See README for instructions."
     echo "--no-shellcheck: disable shellcheck linter"
     echo "--no-yamllint: disable yamllint"
     echo "--no-jsonlint: disable jsonlint"
@@ -42,49 +44,71 @@ do
     echo "--no-tslint: disable tslint"
     exit 0
     ;;
+   --config)
+    config_file=${args[1]}
+    # Check if config file exists
+    [ ! -f "$config_file" ] && echo "config does not exist" && exit 1
+    # Add newline char to end of file to make sure it has at least one
+    echo "" >> "$config_file"
+    # Loop over lines
+    while IFS= read -r line
+    do
+      # Loop over words
+      for word in $line; do
+        # Append every word as an argument
+        args=( "${args[@]}" "$word" )
+      done
+    done < "$config_file"
+    args=( "${args[@]:2}" )
+    ;;
   --type)
-    types=( "${types[@]}" "$2" )
-    shift 2
+    types=( "${types[@]}" "${args[1]}" )
+    args=( "${args[@]:2}" )
     ;;
   --target)
-    target=$2
-    shift 2
+    target=${args[1]}
+    args=( "${args[@]:2}" )
     ;;
   --no-shellcheck)
     no_shellcheck=true
-    shift 1
+    args=( "${args[@]:1}" )
     ;;
   --no-jsonlint)
     no_jsonlint=true
-    shift 1
+    args=( "${args[@]:1}" )
     ;;
   --no-yamllint)
     no_yamllint=true
-    shift 1
+    args=( "${args[@]:1}" )
     ;;
   --trufflehog)
-    shift 1
+    args=( "${args[@]:1}" )
     trufflehog=true
     trufflehog_arguments=()
-    while [[ ! ${possible_args[*]} == *$1* ]]; do
-        trufflehog_arguments+=("$1")
-        shift 1
+    while [[ ! ${possible_args[*]} == *${args[0]}* ]]; do
+      trufflehog_arguments+=("${args[0]}")
+      args=( "${args[@]:1}" )
     done
+    ;;
+  # For the sake of backwards compatability --no-trufflehog overrides --trufflehog
+  --no-trufflehog)
+    no_trufflehog=true
+    args=( "${args[@]:1}" )
     ;;
   --no-flake8)
     no_flake8=true
-    shift 1
+    args=( "${args[@]:1}" )
     ;;
   --no-bandit)
     no_bandit=true
-    shift 1
+    args=( "${args[@]:1}" )
     ;;
   --no-tslint)
     no_tslint=true
-    shift 1
+    args=( "${args[@]:1}" )
     ;;
   -*)
-    echo "Error: Unknown argument: $1" >&2
+    echo "Error: Unknown argument: ${args[0]}" >&2
     echo "Use --help for possible arguments"
     exit 1
     ;;
@@ -105,7 +129,6 @@ elif [[  -f "$target" ]]; then
 else
   echo "target does not exist" && exit 1
 fi
-
 
 ########################## ShellCheck ######################################
 if [[ -z "$no_shellcheck" ]]; then
@@ -148,7 +171,7 @@ fi
 
 
 ########################## Trufflehog ####################################
-if [[ -n "$trufflehog" ]]; then
+if [[ -n "$trufflehog" && -z "$no_trufflehog" ]]; then
   printf  ">> trufflehog...\n"
   trufflehog "${trufflehog_arguments[@]}" || exit_code=1
 fi
