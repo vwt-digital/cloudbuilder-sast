@@ -64,6 +64,7 @@ do
     ;;
   --trufflehog)
     shift 1
+    trufflehog=true
     trufflehog_arguments=()
     while [[ ! ${possible_args[*]} == *$1* ]]; do
         trufflehog_arguments+=("$1")
@@ -147,7 +148,7 @@ fi
 
 
 ########################## Trufflehog ####################################
-if [[ ! -v "${trufflehog_arguments[*]}" ]]; then
+if [[ -n "$trufflehog" ]]; then
   printf  ">> trufflehog...\n"
   trufflehog "${trufflehog_arguments[@]}" || exit_code=1
 fi
