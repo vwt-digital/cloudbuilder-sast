@@ -15,3 +15,12 @@ args: ["arg1", "val1", "arg2", "arg3"]
 ```
 
 Run ```--help``` for more information on arguments
+
+A configuration file may add extra arguments. The arguments will be added as words in order.  
+For example this configuration file is valid:
+```shell script
+# .sast-config
+--no-shellscript --no-yamllint
+--target . --type
+bandit
+```
