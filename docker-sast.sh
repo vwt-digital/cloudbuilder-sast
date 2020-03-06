@@ -9,7 +9,7 @@ if [[ "$#" -eq 0 ]]; then
   exit 0
 fi
 
-possible_args=("--target" "--help" "--type" "--config" "--no-shellcheck" "--no-yamllint" "--no-jsonlint" "--trufflehog" "--no-bandit" "--no-flake8" "--no-tslint")
+#possible_args=("--target" "--help" "--type" "--config" "--no-shellcheck" "--no-yamllint" "--no-jsonlint" "--trufflehog" "--no-bandit" "--no-flake8" "--no-tslint")
 
 declare types
 # Parse arguments
@@ -32,10 +32,10 @@ do
     echo "--no-yamllint: disable yamllint"
     echo "--no-jsonlint: disable jsonlint"
     echo
-    echo "--trufflehog ARGUMENTS: if set, will parse arguments as trufflehog arguments until it finds a docker-sast"\
-         "argument"
-    echo "                        e.g. $ docker-sash.sh --trufflehog --cleanup /git_folder --target /git_folder"
-    echo
+#    echo "--trufflehog ARGUMENTS: if set, will parse arguments as trufflehog arguments until it finds a docker-sast"\
+#         "argument"
+#    echo "                        e.g. $ docker-sash.sh --trufflehog --cleanup /git_folder --target /git_folder"
+#    echo
     echo "backend:"
     echo "--no-bandit: disable bandit scan"
     echo "--no-flake8: disable flake8 scan"
@@ -81,20 +81,20 @@ do
     no_yamllint=true
     args=( "${args[@]:1}" )
     ;;
-  --trufflehog)
-    args=( "${args[@]:1}" )
-    trufflehog=true
-    trufflehog_arguments=()
-    while [[ ! ${possible_args[*]} == *${args[0]}* ]]; do
-      trufflehog_arguments+=("${args[0]}")
-      args=( "${args[@]:1}" )
-    done
-    ;;
+#  --trufflehog)
+#    args=( "${args[@]:1}" )
+#    trufflehog=true
+#    trufflehog_arguments=()
+#    while [[ ! ${possible_args[*]} == *${args[0]}* ]]; do
+#      trufflehog_arguments+=("${args[0]}")
+#      args=( "${args[@]:1}" )
+#    done
+#    ;;
   # For the sake of backwards compatability --no-trufflehog overrides --trufflehog
-  --no-trufflehog)
-    no_trufflehog=true
-    args=( "${args[@]:1}" )
-    ;;
+#  --no-trufflehog)
+#    no_trufflehog=true
+#    args=( "${args[@]:1}" )
+#    ;;
   --no-flake8)
     no_flake8=true
     args=( "${args[@]:1}" )
@@ -171,10 +171,10 @@ fi
 
 
 ########################## Trufflehog ####################################
-if [[ -n "$trufflehog" && -z "$no_trufflehog" ]]; then
-  printf  ">> trufflehog...\n"
-  trufflehog "${trufflehog_arguments[@]}" || exit_code=1
-fi
+#if [[ -n "$trufflehog" && -z "$no_trufflehog" ]]; then
+#  printf  ">> trufflehog...\n"
+#  trufflehog "${trufflehog_arguments[@]}" || exit_code=1
+#fi
 
 
 if [[ " ${types[*]} " =~ 'python' ]]; then
