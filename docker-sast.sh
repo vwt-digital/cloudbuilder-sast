@@ -9,7 +9,7 @@ if [[ "$#" -eq 0 ]]; then
   exit 0
 fi
 
-possible_args=["--target" "--help" "--type" "--no-shellcheck" "--no-yamllint" "--no-jsonlint" "--trufflehog" "--no-bandit" "--no-flake8" "--no-tslint"]
+possible_args=("--target" "--help" "--type" "--no-shellcheck" "--no-yamllint" "--no-jsonlint" "--trufflehog" "--no-bandit" "--no-flake8" "--no-tslint")
 
 declare types
 # Parse arguments
@@ -65,13 +65,10 @@ do
   --trufflehog)
     shift 1
     trufflehog_arguments=()
-    i=0
-    while [[ ! $possible_args == *$1* ]]; do
+    while [[ ! ${possible_args[*]} == *$1* ]]; do
         trufflehog_arguments+=("$1")
-        i+=1
         shift 1
     done
-    unset i
     ;;
   --no-flake8)
     no_flake8=true
@@ -150,7 +147,7 @@ fi
 
 
 ########################## Trufflehog ####################################
-if [[ -n "$trufflehog_arguments" ]]; then
+if [[ -v "${trufflehog_arguments[*]}" ]]; then
   printf  ">> trufflehog...\n"
   trufflehog "${trufflehog_arguments[@]}" || exit_code=1
 fi
