@@ -10,18 +10,18 @@ RUN apt update \
 && apt install -y nodejs
 
 RUN npm install -g typescript \
-&& npm install -g tslint \
-&& npm install -g jsonlint
+&& npm install -g tslint
 
 ARG CACHEBUST=1
 
-COPY docker-sast.sh docker-sast.sh
 COPY test.py test.py
+COPY docker-sast.sh /usr/local/bin/
+COPY jsonlint.py /usr/local/bin
 ADD tests tests
 
 RUN ["python3", "test.py"]
 
 ARG CACHEBUST=0
 
-COPY docker-sast.sh /usr/local/bin/
+
 ENTRYPOINT ["bash", "docker-sast.sh"]

@@ -139,10 +139,10 @@ if [[ -z "$no_jsonlint" ]]; then
     for f in "$target"/**/*.json; do
       # if glob does not match, stop execution
       [[ -e "$f" ]] || continue
-      jsonlint -q "$f" || echo "Error in file: $f" && exit_code=1;
+      python /usr/local/bin/jsonlint.py "$f" || echo "Error in file: $f" && exit_code=1;
     done
   elif [[ "${target: -5}" == ".json" ]]; then
-    jsonlint -q "$target" || exit_code=1
+    python /usr/local/bin/jsonlint.py "$target" || exit_code=1
   fi
 fi
 
