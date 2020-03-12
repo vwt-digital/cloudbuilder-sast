@@ -118,10 +118,8 @@ do
   esac
 done
 
-# Yaml lint
-#[[ -f ".yamllint" ]] && yamllint_config="-c ./.yamllint"
-## JSON lint
-#[[ -f ".jsonlint" ]] && jsonlint_config="-c ./.jsonlint"
+
+
 
 # Check if target is set
 [ -z "$target" ] && echo "target not set" && exit 1
@@ -139,17 +137,17 @@ fi
 if [[ -z "$no_shellcheck" ]]; then
   # If config file is found, parse arguments
   if [[ -f ".shellcheck" ]]; then
-      # Add newline char to end of file to make sure it has at least one
-      echo "" >> ".shellcheck"
-      # Loop over lines
-      while IFS= read -r line
-      do
-        # Loop over words
-        for word in $line; do
-          # Append every word as an argument
-          shellcheck_args=( "${shellcheck_args[@]}" "$word" )
-        done
-      done < ".shellcheck"
+    # Add newline char to end of file to make sure it has at least one
+    echo "" >> ".shellcheck"
+    # Loop over lines
+    while IFS= read -r line
+    do
+      # Loop over words
+      for word in $line; do
+        # Append every word as an argument
+        shellcheck_args=( "${shellcheck_args[@]}" "$word" )
+      done
+    done < ".shellcheck"
   fi
   printf ">> shellcheck...\n";
   if [[ $target_type == "directory" ]]; then
@@ -165,6 +163,7 @@ fi
 
 
 ########################## Yaml lint ######################################
+# Yamllint looks for .yamllint, yamllint.yaml and .yamllint.yml config files by default
 if [[ -z "$no_yamllint" ]]; then
   printf ">> yamllint...\n"
   if [[ $target_type == "directory" || "${target: -5}" == ".yaml" ]]; then
@@ -175,15 +174,16 @@ fi
 
 
 ########################## JSONLint ######################################
+# Custom jsonlint only checks if json is valid so no configuration is possible
 if [[ -z "$no_jsonlint" ]]; then
   printf ">> jsonlint...\n"
   if [[ $target_type == "directory" ]]; then
-    for f in "$target"/**/*.json; do
-      # if glob does not match, stop execution
-      [[ -e "$f" ]] || continue
-      python /usr/local/bin/jsonlint.py "$f" > /dev/null 2>&1 || echo -e "\e[4m$f\e[0m"
-      python /usr/local/bin/jsonlint.py "$f" || exit_code=1;
-    done
+      for f in "$target"/**/*.json; do
+        # if glob does not match, stop execution
+        [[ -e "$f" ]] || continue
+        python /usr/local/bin/jsonlint.py "$f" > /dev/null 2>&1 || echo -e "\e[4m$f\e[0m"
+        python /usr/local/bin/jsonlint.py "$f" || exit_code=1;
+      done
   elif [[ "${target: -5}" == ".json" ]]; then
     python /usr/local/bin/jsonlint.py "$target" > /dev/null 2>&1 || echo -e "\e[4m$target\e[0m"
     python /usr/local/bin/jsonlint.py "$target" || exit_code=1
@@ -200,13 +200,14 @@ fi
 
 if [[ " ${types[*]} " =~ 'python' ]]; then
 ############################# Bandit #####################################
+  # Bandit looks for .bandit config files by default
   # installing bandit through pip3 instead of pip causes -q (quiet) to fail
   if [[ -z "$no_bandit" ]]; then
     printf ">> bandit...\n"
     if [[ $target_type == "directory" ]]; then
-      bandit -r -q -l "$target" || exit_code=1
+      eval bandit -r -q -l "${target}" "${bandit_config}" || exit_code=1
     elif [[ "${target: -3}" == ".py" ]]; then
-      bandit -q -l "$target" || exit_code=1
+      eval bandit -q -l "${target}" "${bandit_config}"|| exit_code=1
     fi
   fi
 
