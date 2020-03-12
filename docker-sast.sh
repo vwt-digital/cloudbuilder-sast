@@ -205,14 +205,15 @@ if [[ " ${types[*]} " =~ 'python' ]]; then
   if [[ -z "$no_bandit" ]]; then
     printf ">> bandit...\n"
     if [[ $target_type == "directory" ]]; then
-      eval bandit -r -q -l "${target}" "${bandit_config}" || exit_code=1
+      bandit -r -q -l "$target" || exit_code=1
     elif [[ "${target: -3}" == ".py" ]]; then
-      eval bandit -q -l "${target}" "${bandit_config}"|| exit_code=1
+      bandit -q -l "$target" || exit_code=1
     fi
   fi
 
 
 ############################# Flake8 #####################################
+# Flake8 looks for setup.cfg, tox.ini and .flake8 files by default
   if [[ -z "$no_flake8" ]]; then
     printf ">> flake8...\n"
     if [[ $target_type == "directory" || "${target: -3}" == ".py" ]]; then
@@ -224,6 +225,7 @@ fi
 
 if [[ " ${types[*]} " =~ 'typescript' ]]; then
 ############################# TSLint #####################################
+# TSLint looks for tslint.json and tslint.yaml files by default
   if [[ -z "$no_tslint" ]]; then
     printf ">> tslint...\n"
     tslint --init || exit_code=1
