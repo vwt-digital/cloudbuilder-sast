@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
     filename = args.filename
     try:
-        fhandle = open(filename, 'rb' )
+        fhandle = open(filename, 'rb')
     except OSError as error:
         print(error)
         sys.exit(1)
