@@ -2,7 +2,7 @@ FROM python:3.7-slim
 WORKDIR /workspace
 
 RUN pip install bandit flake8 shellcheck-py yamllint
-RUN pip3 install trufflehog
+#RUN pip3 install trufflehog
 
 RUN apt update \
 && apt install -y curl git \
