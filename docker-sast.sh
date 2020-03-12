@@ -115,11 +115,12 @@ do
     ;;
   esac
 done
-
 # Check if target is set
 [ -z "$target" ] && echo "target not set" && exit 1
 
-cp "$target"/* "$(pwd)"
+# Copy config folder
+cp -r "$target"/config/. . > /dev/null 2>&1
+
 # Execute recursively on folders
 if [[ -d "$target" ]]; then
   target_type="directory"
