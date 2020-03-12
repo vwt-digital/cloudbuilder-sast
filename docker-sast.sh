@@ -9,8 +9,6 @@ if [[ "$#" -eq 0 ]]; then
   exit 0
 fi
 
-#possible_args=("--target" "--help" "--type" "--config" "--no-shellcheck" "--no-yamllint" "--no-jsonlint" "--trufflehog" "--no-bandit" "--no-flake8" "--no-tslint")
-
 declare types
 # Parse arguments
 args=("$@")
@@ -118,12 +116,10 @@ do
   esac
 done
 
-
-
-
 # Check if target is set
 [ -z "$target" ] && echo "target not set" && exit 1
 
+cp "$target"/* "$(pwd)"
 # Execute recursively on folders
 if [[ -d "$target" ]]; then
   target_type="directory"
