@@ -118,6 +118,11 @@ do
   esac
 done
 
+# Yaml lint
+#[[ -f ".yamllint" ]] && yamllint_config="-c ./.yamllint"
+## JSON lint
+#[[ -f ".jsonlint" ]] && jsonlint_config="-c ./.jsonlint"
+
 # Check if target is set
 [ -z "$target" ] && echo "target not set" && exit 1
 
@@ -132,12 +137,26 @@ fi
 
 ########################## ShellCheck ######################################
 if [[ -z "$no_shellcheck" ]]; then
+  # If config file is found, parse arguments
+  if [[ -f ".shellcheck" ]]; then
+      # Add newline char to end of file to make sure it has at least one
+      echo "" >> ".shellcheck"
+      # Loop over lines
+      while IFS= read -r line
+      do
+        # Loop over words
+        for word in $line; do
+          # Append every word as an argument
+          shellcheck_args=( "${shellcheck_args[@]}" "$word" )
+        done
+      done < ".shellcheck"
+  fi
   printf ">> shellcheck...\n";
   if [[ $target_type == "directory" ]]; then
     for f in "$target"/**/*.sh; do
        # if glob does not match, stop execution
        [[ -e "$f" ]] || continue
-       shellcheck "$f" --shell=bash || exit_code=1
+       eval shellcheck "${f}" --shell=bash "${shellcheck_args[@]/#}" || exit_code=1
     done
   elif [[ "${target: -3}" == ".sh" ]]; then
     shellcheck "$target" || exit_code=1
