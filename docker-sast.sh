@@ -25,7 +25,6 @@ do
     echo
     echo "--help: print usage and exit"
     echo "--type TYPE: what sast tests to run. This argument can be added multiple times (options: python, typescript)."
-    echo "--config FILE: location of a config file. See README for instructions."
     echo "--no-shellcheck: disable shellcheck linter"
     echo "--no-yamllint: disable yamllint"
     echo "--no-jsonlint: disable jsonlint"
@@ -41,23 +40,6 @@ do
     echo "frontend:"
     echo "--no-tslint: disable tslint"
     exit 0
-    ;;
-   --config)
-    config_file=${args[1]}
-    # Check if config file exists
-    [ ! -f "$config_file" ] && echo "config does not exist" && exit 1
-    # Add newline char to end of file to make sure it has at least one
-    echo "" >> "$config_file"
-    # Loop over lines
-    while IFS= read -r line
-    do
-      # Loop over words
-      for word in $line; do
-        # Append every word as an argument
-        args=( "${args[@]}" "$word" )
-      done
-    done < "$config_file"
-    args=( "${args[@]:2}" )
     ;;
   --type)
     types=( "${types[@]}" "${args[1]}" )
