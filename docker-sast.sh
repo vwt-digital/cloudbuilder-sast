@@ -100,8 +100,8 @@ done
 # Check if target is set
 [ -z "$target" ] && echo "target not set" && exit 1
 
-# Copy config folder
-cp -r "$target"/config/. . > /dev/null 2>&1
+# Copy sast-config folder
+cp -r "$target"/sast-config/. . > /dev/null 2>&1
 
 # Execute recursively on folders
 if [[ -d "$target" ]]; then
@@ -146,7 +146,6 @@ fi
 if [[ -z "$no_yamllint" ]]; then
   printf ">> yamllint...\n"
   if [[ $target_type == "directory" || "${target: -5}" == ".yaml" ]]; then
-      # Replace -d with config file if more custom rules are added
       yamllint "$target" -d "{extends: default, rules: {line-length: {max: 120}}}" || exit_code=1
   fi
 fi

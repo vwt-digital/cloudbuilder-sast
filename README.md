@@ -16,7 +16,8 @@ args: ["arg1", "val1", "arg2", "arg3"]
 
 Run ```--help``` for more information on arguments.
 
-Config files may be added to a config folder in a target directory. SAST scan checks for the following files in /config:
+Config files may be added to a sast-config folder in a target directory. SAST scan checks for the following files in
+ /sast-config:
 
 shellcheck:
 `.shellcheck`  
