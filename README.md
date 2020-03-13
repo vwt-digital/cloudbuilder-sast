@@ -14,13 +14,22 @@ Including this container in a Cloudbuild config file:
 args: ["arg1", "val1", "arg2", "arg3"]
 ```
 
-Run ```--help``` for more information on arguments
+Run ```--help``` for more information on arguments.
 
-A configuration file may add extra arguments. The arguments will be added as words in order.  
-For example this configuration file is valid:
-```shell script
-# .sast-config
---no-shellscript --no-yamllint
---target . --type
-bandit
-```
+Config files may be added to a sast-config folder in a target directory. SAST scan checks for the following files in
+ /sast-config:
+
+shellcheck:
+`.shellcheck`  
+yamllint:
+`.yamllint` `yamllint.yaml` `yamllint.yml`  
+jsonlint:
+none  
+bandit:
+`.bandit`  
+flake8:
+`setup.cfg` `tox.ini` `.flake8`  
+tslint:
+`tslint.json` `tslint.yaml`
+
+For configuration options see the documentation of the respective tool.
