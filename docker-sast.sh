@@ -29,10 +29,7 @@ do
     echo "--no-yamllint: disable yamllint"
     echo "--no-jsonlint: disable jsonlint"
     echo
-#    echo "--trufflehog ARGUMENTS: if set, will parse arguments as trufflehog arguments until it finds a docker-sast"\
-#         "argument"
-#    echo "                        e.g. $ docker-sash.sh --trufflehog --cleanup /git_folder --target /git_folder"
-#    echo
+    echo "--no-trufflehog: disable trufflehog"
     echo "backend:"
     echo "--no-bandit: disable bandit scan"
     echo "--no-flake8: disable flake8 scan"
@@ -61,20 +58,10 @@ do
     no_yamllint=true
     args=( "${args[@]:1}" )
     ;;
-#  --trufflehog)
-#    args=( "${args[@]:1}" )
-#    trufflehog=true
-#    trufflehog_arguments=()
-#    while [[ ! ${possible_args[*]} == *${args[0]}* ]]; do
-#      trufflehog_arguments+=("${args[0]}")
-#      args=( "${args[@]:1}" )
-#    done
-#    ;;
-  # For the sake of backwards compatability --no-trufflehog overrides --trufflehog
-#  --no-trufflehog)
-#    no_trufflehog=true
-#    args=( "${args[@]:1}" )
-#    ;;
+  --no-trufflehog)
+    no_trufflehog=true
+    args=( "${args[@]:1}" )
+    ;;
   --no-flake8)
     no_flake8=true
     args=( "${args[@]:1}" )
@@ -113,6 +100,7 @@ else
 fi
 
 ########################## ShellCheck ######################################
+# SAST will look for .shellcheck files
 if [[ -z "$no_shellcheck" ]]; then
   # If config file is found, parse arguments
   if [[ -f ".shellcheck" ]]; then
@@ -160,7 +148,7 @@ if [[ -z "$no_jsonlint" ]]; then
         # if glob does not match, stop execution
         [[ -e "$f" ]] || continue
         python /usr/local/bin/jsonlint.py "$f" > /dev/null 2>&1 || echo -e "\e[4m$f\e[0m"
-        python /usr/local/bin/jsonlint.py "$f" || exit_code=1;
+        python /usr/local/bin/jsonlint.py "$f" || exit_code=1
       done
   elif [[ "${target: -5}" == ".json" ]]; then
     python /usr/local/bin/jsonlint.py "$target" > /dev/null 2>&1 || echo -e "\e[4m$target\e[0m"
@@ -170,11 +158,25 @@ fi
 
 
 ########################## Trufflehog ####################################
-#if [[ -n "$trufflehog" && -z "$no_trufflehog" ]]; then
-#  printf  ">> trufflehog...\n"
-#  trufflehog "${trufflehog_arguments[@]}" || exit_code=1
-#fi
-
+# SAST will look for a .trufflehog file
+if [[ -z "$no_trufflehog" && $target_type == "directory" ]]; then
+  # If config file is found, parse arguments
+  if [[ -f ".trufflehog" ]]; then
+    # Add newline char to end of file to make sure it has at least one
+    echo "" >> ".trufflehog"
+    # Loop over lines
+    while IFS= read -r line
+    do
+      # Loop over words
+      for word in $line; do
+        # Append every word as an argument
+        trufflehog_args=( "${trufflehog_args[@]}" "$word" )
+      done
+    done < ".trufflehog"
+  fi
+  printf  ">> trufflehog...\n"
+  eval python3 truffleHog/truffleHog/truffleHog.py --cleanup "${trufflehog_args[@]/#}" "${target}"  || exit_code=1
+fi
 
 if [[ " ${types[*]} " =~ 'python' ]]; then
 ############################# Bandit #####################################
