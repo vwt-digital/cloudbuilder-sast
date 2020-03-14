@@ -175,7 +175,7 @@ if [[ -z "$no_trufflehog" && $target_type == "directory" ]]; then
     done < ".trufflehog"
   fi
   printf  ">> trufflehog...\n"
-  eval python3 truffleHog/truffleHog/truffleHog.py --cleanup "${trufflehog_args[@]/#}" "${target}"  || exit_code=1
+  eval truffleHog.py --cleanup "${trufflehog_args[@]/#}" "${target}"  || exit_code=1
 fi
 
 if [[ " ${types[*]} " =~ 'python' ]]; then
