@@ -25,6 +25,8 @@ yamllint:
 `.yamllint` `yamllint.yaml` `yamllint.yml`  
 jsonlint:
 none  
+trufflehog:
+`.trufflehog`  
 bandit:
 `.bandit`  
 flake8:
