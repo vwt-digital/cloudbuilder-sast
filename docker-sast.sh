@@ -210,7 +210,7 @@ if [[ " ${types[*]} " =~ 'typescript' ]]; then
     printf ">> tslint...\n"
     tslint --init || exit_code=1
     if [[ $target_type == "directory" ]]; then
-      tslint "$target"/**/*.ts -e \"node_modules\" || exit_code=1
+      tslint "$target"/**/*.ts || exit_code=1
     elif [[ "${target: -3}" == ".ts" ]]; then
       tslint "$target" || exit_code=1
     fi
