@@ -36,6 +36,7 @@ do
     echo
     echo "frontend:"
     echo "--no-tslint: disable tslint"
+    echo "--no-nodemodules: hide node_modules"
     exit 0
     ;;
   --type)
@@ -74,6 +75,10 @@ do
     no_tslint=true
     args=( "${args[@]:1}" )
     ;;
+  --no-nodemodules)
+    no_node=true
+    args=( "${args[@]:1}" )
+    ;;
   -*)
     echo "Error: Unknown argument: ${args[0]}" >&2
     echo "Use --help for possible arguments"
@@ -97,6 +102,14 @@ elif [[  -f "$target" ]]; then
   target_type="file"
 else
   echo "target does not exist" && exit 1
+fi
+
+# Move node_modules to workspace to hide it from passing tests
+if [[ "$no_node" ]]; then
+  printf "Removing node_modules temporarily...\n"
+  if [[ -d "$target/node_modules" ]]; then
+    mv "$target"/node_modules /workspace
+  fi
 fi
 
 ########################## ShellCheck ######################################
@@ -202,6 +215,12 @@ if [[ " ${types[*]} " =~ 'python' ]]; then
   fi
 fi
 
+if [[ "$no_node" ]]; then
+  printf "Adding node_modules back...\n"
+  if [[ -d "/workspace/node_modules" ]]; then
+    mv /workspace/node_modules "$target"/node_modules
+  fi
+fi
 
 if [[ " ${types[*]} " =~ 'typescript' ]]; then
 ############################# TSLint #####################################
