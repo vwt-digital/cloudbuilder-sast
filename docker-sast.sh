@@ -36,7 +36,6 @@ do
     echo
     echo "frontend:"
     echo "--no-tslint: disable tslint"
-    echo "--no-nodemodules: hide node_modules"
     exit 0
     ;;
   --type)
@@ -75,10 +74,6 @@ do
     no_tslint=true
     args=( "${args[@]:1}" )
     ;;
-  --no-nodemodules)
-    no_node=true
-    args=( "${args[@]:1}" )
-    ;;
   -*)
     echo "Error: Unknown argument: ${args[0]}" >&2
     echo "Use --help for possible arguments"
@@ -105,11 +100,9 @@ else
 fi
 
 # Move node_modules to workspace to hide it from passing tests
-if [[ "$no_node" ]]; then
-  printf "Removing node_modules temporarily...\n"
-  if [[ -d "$target/node_modules" ]]; then
-    mv "$target"/node_modules /workspace
-  fi
+if [[ -d "$target/node_modules" ]]; then
+  printf "Hide node_modules temporarily\n"
+  mv "$target"/node_modules "$target"/.node_modules
 fi
 
 ########################## ShellCheck ######################################
@@ -147,7 +140,7 @@ fi
 if [[ -z "$no_yamllint" ]]; then
   printf ">> yamllint...\n"
   if [[ $target_type == "directory" || "${target: -5}" == ".yaml" ]]; then
-      yamllint "$target" -d "{extends: default, rules: {line-length: {max: 120}}}" || exit_code=1
+      yamllint "$target" -d "{extends: default, ignore: .node_modules, rules: {line-length: {max: 120}}}" || exit_code=1
   fi
 fi
 
@@ -215,12 +208,12 @@ if [[ " ${types[*]} " =~ 'python' ]]; then
   fi
 fi
 
-if [[ "$no_node" ]]; then
-  printf "Adding node_modules back...\n"
-  if [[ -d "/workspace/node_modules" ]]; then
-    mv /workspace/node_modules "$target"/node_modules
-  fi
+
+if [[ -d "$target/.node_modules" ]]; then
+  printf "Unhide node_modules\n"
+  mv "$target"/.node_modules "$target"/node_modules
 fi
+
 
 if [[ " ${types[*]} " =~ 'typescript' ]]; then
 ############################# TSLint #####################################
