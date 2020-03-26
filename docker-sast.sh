@@ -11,7 +11,6 @@ fi
 
 declare types
 # Parse arguments
-args=("$@")
 while :
 do
   case "$1" in
@@ -47,40 +46,16 @@ do
     target="$2"
     shift 2
     ;;
+  --config)
+    config_file=$2
+    shift 2
+    ;;
   --context)
     context="$2"
     shift 2
     ;;
-  --no-shellcheck)
-    no_shellcheck=true
-    shift 1
-    ;;
-  --no-jsonlint)
-    no_jsonlint=true
-    shift 1
-    ;;
-  --no-yamllint)
-    no_yamllint=true
-    shift 1
-    ;;
-  --no-trufflehog)
-    no_trufflehog=true
-    shift 1
-    ;;
-  --no-flake8)
-    no_flake8=true
-    shift 1
-    ;;
-  --no-bandit)
-    no_bandit=true
-    shift 1
-    ;;
-  --no-tslint)
-    no_tslint=true
-    shift 1
-    ;;
   -*)
-    echo "Error: Unknown argument: ${args[0]}" >&2
+    echo "Error: Unknown argument: $1" >&2
     echo "Use --help for possible arguments"
     exit 1
     ;;
@@ -94,7 +69,30 @@ done
 
 # Copy sast-config folder
 cp -r "$target"/sast-config/. . > /dev/null 2>&1
+# Read sast-config file
 
+if [[ -n "$config_file" ]]; then
+  if [[  -f "$config_file" ]]; then
+    # Add newline char to end of file to make sure it has at least one
+    echo "" >> "$config_file"
+
+    while IFS= read -r line; do
+        # Loop over words
+        for word in $line; do
+          # Append every word as an argument
+          [[ "$word" == "--no-shellcheck" ]] && no_shellcheck=true
+          [[ "$word" == "--no-jsonlint" ]] && no_jsonlint=true
+          [[ "$word" == "--no-yamllint" ]] && no_yamllint=true
+          [[ "$word" == "--no-trufflehog" ]] && no_trufflehog=true
+          [[ "$word" == "--no-bandit" ]] && no_bandit=true
+          [[ "$word" == "--no-flake8" ]] && no_flake8=true
+          [[ "$word" == "--no-tslint" ]] && no_tslint=true
+        done
+      done < "$config_file"
+  else
+    echo "target is not a file or does not exist" && exit 1
+  fi
+fi
 # Execute recursively on folders
 if [[ -d "$target" ]]; then
   target_type="directory"
@@ -102,6 +100,13 @@ elif [[  -f "$target" ]]; then
   target_type="file"
 else
   echo "target does not exist" && exit 1
+fi
+if  [[ -n ${context+x} ]]; then
+  if [[ "$context" == "commit-hook" ]]; then
+    echo "$context"
+  elif [[ "$context" == "cloudbuild" ]]; then
+    echo "$context"
+  fi
 fi
 
 # Move node_modules to workspace to hide it from passing tests
@@ -118,8 +123,7 @@ if [[ -z "$no_shellcheck" ]]; then
     # Add newline char to end of file to make sure it has at least one
     echo "" >> ".shellcheck"
     # Loop over lines
-    while IFS= read -r line
-    do
+    while IFS= read -r line; do
       # Loop over words
       for word in $line; do
         # Append every word as an argument
@@ -192,7 +196,7 @@ fi
 if [[ " ${types[*]} " =~ 'python' ]]; then
 ############################# Bandit #####################################
   # Bandit looks for .bandit config files by default
-  # installing bandit through pip3 instead of pip causes -q (quiet) to fail
+  # installing bandit thr ough pip3 instead of pip causes -q (quiet) to fail
   if [[ -z "$no_bandit" ]]; then
     printf ">> bandit...\n"
     if [[ $target_type == "directory" ]]; then
