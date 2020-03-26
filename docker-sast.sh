@@ -14,7 +14,7 @@ declare types
 args=("$@")
 while :
 do
-  case "${args[0]}" in
+  case "$1" in
   --help)
     echo "Usage:"
     echo "positional arguments:"
@@ -25,6 +25,7 @@ do
     echo
     echo "--help: print usage and exit"
     echo "--type TYPE: what sast tests to run. This argument can be added multiple times (options: python, typescript)."
+    echo "--context CONTEXT where this sast scan will be executed (options: commit-hook, cloudbuild)"
     echo "--no-shellcheck: disable shellcheck linter"
     echo "--no-yamllint: disable yamllint"
     echo "--no-jsonlint: disable jsonlint"
@@ -39,40 +40,44 @@ do
     exit 0
     ;;
   --type)
-    types=( "${types[@]}" "${args[1]}" )
-    args=( "${args[@]:2}" )
+    types=( "${types[@]}" "$2" )
+    shift 2
     ;;
   --target)
-    target=${args[1]}
-    args=( "${args[@]:2}" )
+    target="$2"
+    shift 2
+    ;;
+  --context)
+    context="$2"
+    shift 2
     ;;
   --no-shellcheck)
     no_shellcheck=true
-    args=( "${args[@]:1}" )
+    shift 1
     ;;
   --no-jsonlint)
     no_jsonlint=true
-    args=( "${args[@]:1}" )
+    shift 1
     ;;
   --no-yamllint)
     no_yamllint=true
-    args=( "${args[@]:1}" )
+    shift 1
     ;;
   --no-trufflehog)
     no_trufflehog=true
-    args=( "${args[@]:1}" )
+    shift 1
     ;;
   --no-flake8)
     no_flake8=true
-    args=( "${args[@]:1}" )
+    shift 1
     ;;
   --no-bandit)
     no_bandit=true
-    args=( "${args[@]:1}" )
+    shift 1
     ;;
   --no-tslint)
     no_tslint=true
-    args=( "${args[@]:1}" )
+    shift 1
     ;;
   -*)
     echo "Error: Unknown argument: ${args[0]}" >&2
