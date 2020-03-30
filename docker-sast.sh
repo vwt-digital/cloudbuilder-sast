@@ -235,7 +235,7 @@ if [[ " ${types[*]} " =~ 'typescript' ]]; then
         eslint . --ext .ts || exit_code=1
         cd /
       else
-        printf "No ESlint config found. Initialize config first using eslint --init.\n" && exit_code=1
+        eslint "$target" --ext .ts --no-eslintrc || exit_code=1
       fi
     elif [[ "${target: -3}" == ".ts" ]]; then
       eslint "$target" --ext .ts --no-eslintrc || exit_code=1
