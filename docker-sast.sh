@@ -231,7 +231,12 @@ if [[ " ${types[*]} " =~ 'typescript' ]]; then
     printf ">> tslint...\n"
     tslint --init || exit_code=1
     if [[ $target_type == "directory" ]]; then
-      tslint "$target"/**/*.ts || exit_code=1
+      CONFFILE="$target"/tsconfig.json
+      if [[ -f "$CONFFILE" ]]; then
+        tslint --project "$target" || exit_code=1
+      else
+        tslint "$target"/**/*.ts || exit_code=1
+      fi
     elif [[ "${target: -3}" == ".ts" ]]; then
       tslint "$target" || exit_code=1
     fi
