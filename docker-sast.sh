@@ -231,13 +231,15 @@ if [[ " ${types[*]} " =~ 'typescript' ]]; then
   if [[ -z "$no_eslint" ]]; then
     printf ">> eslint...\n"
     if [[ "$target_type" == "directory" ]]; then
-      [ -d "$target" ] && cd "$target"; exit_code=1
-      esconf=eslintrc.json
-      if [[ ! -f "$esconf" ]]; then
-        mv /usr/local/etc/eslintrc.json eslintrc.json
+      if ls "$target"/*.ts >/dev/null 2>&1; then
+        [ -d "$target" ] && cd "$target"; exit_code=1
+        esconf=eslintrc.json
+        if [[ ! -f "$esconf" ]]; then
+          mv /usr/local/etc/eslintrc.json eslintrc.json
+        fi
+        eslint . -c eslintrc.json --ext .ts || exit_code=1
+        cd /
       fi
-      eslint . -c eslintrc.json --ext .ts || exit_code=1
-      cd /
     fi
   fi
 fi
