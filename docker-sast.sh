@@ -1,4 +1,5 @@
 #!  /usr/bin/env bash
+# shellcheck disable=SC2164
 # keep exit values after pipe: this makes it so the build step will correctly exit with error if one of the tests fails
 set -o pipefail
 shopt -s globstar
@@ -34,7 +35,7 @@ do
     echo "    --no-trufflehog: disable trufflehog"
     echo "    --no-bandit: disable bandit"
     echo "    --no-flake8: disable falke8"
-    echo "    --no-estslint: disable ESlint & TSlint"
+    echo "    --no-eslint: disable ESlint"
     exit 0
     ;;
   --type)
@@ -85,7 +86,7 @@ if [[ -n "$config_file" ]]; then
           [[ "$word" == "--no-trufflehog" ]] && no_trufflehog=true
           [[ "$word" == "--no-bandit" ]] && no_bandit=true
           [[ "$word" == "--no-flake8" ]] && no_flake8=true
-          [[ "$word" == "--no-estslint" ]] && no_estslint=true
+          [[ "$word" == "--no-estslint" ]] && no_eslint=true
         done
       done < "$config_file"
   else
@@ -199,7 +200,7 @@ if [[ " ${types[*]} " =~ 'python' ]]; then
   if [[ -z "$no_bandit" ]]; then
     printf ">> bandit...\n"
     if [[ $target_type == "directory" ]]; then
-      bandit -r -q -l "$target" || exit_code=1
+      bandit -r -q -l "$target" -x .node_modules|| exit_code=1
     elif [[ "${target: -3}" == ".py" ]]; then
       bandit -q -l "$target" || exit_code=1
     fi
@@ -210,7 +211,9 @@ if [[ " ${types[*]} " =~ 'python' ]]; then
 # Flake8 looks for setup.cfg, tox.ini and .flake8 files by default
   if [[ -z "$no_flake8" ]]; then
     printf ">> flake8...\n"
-    if [[ $target_type == "directory" || "${target: -3}" == ".py" ]]; then
+    if [[ $target_type == "directory" ]]; then
+      flake8 --max-line-length=139 "$target" --exclude .node_modules || exit_code=1
+    elif [[ "${target: -3}" == ".py" ]];then
       flake8 --max-line-length=139 "$target" || exit_code=1
     fi
   fi
@@ -224,26 +227,18 @@ fi
 
 
 if [[ " ${types[*]} " =~ 'typescript' ]]; then
-############################# ESLint / TSLint #####################################
-  if [[ -z "$no_estslint" ]]; then
-    printf "Starting ES/TS linting process "
-    tslint --init || exit_code=1
-    if [[ $target_type == "directory" ]]; then
-      esconf="$target"/.eslintrc.json
-      if [[ -f "$esconf" ]]; then
-      printf ">> eslint...\n"
-        cd "$target" || exit_code=1; return;
-        eslint . --ext .ts || exit_code=1
-        cd /
-      else 
-        printf ">> tslint...\n"
-        tslint "$target"/**/*.ts || exit_code=1
+############################# ESLint #####################################
+  if [[ -z "$no_eslint" ]]; then
+    printf ">> eslint...\n"
+    if [[ "$target_type" == "directory" ]]; then
+      [ -d "$target" ] && cd "$target"; exit_code=1
+      esconf=eslintrc.json
+      if [[ ! -f "$esconf" ]]; then
+        mv /usr/local/etc/eslintrc.json eslintrc.json
       fi
-    elif [[ "${target: -3}" == ".ts" ]]; then
-      printf ">> tslint...\n"
-      tslint "$target" || exit_code=1
+      eslint . -c eslintrc.json --ext .ts || exit_code=1
+      cd /
     fi
-    rm tslint.json
   fi
 fi
 exit $exit_code
