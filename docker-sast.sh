@@ -23,19 +23,18 @@ do
     echo "optional arguments:"
     echo
     echo "--help: print usage and exit"
-    echo "--type TYPE: what sast tests to run. This argument can be added multiple times (options: python, typescript)."
+    echo "--type TYPE: what sast tests to run. This argument can be added multiple times (options: python, typescript)"
     echo "--context CONTEXT where this sast scan will be executed (options: commit-hook, cloudbuild)"
-    echo "--no-shellcheck: disable shellcheck linter"
-    echo "--no-yamllint: disable yamllint"
-    echo "--no-jsonlint: disable jsonlint"
     echo
-    echo "--no-trufflehog: disable trufflehog"
-    echo "backend:"
-    echo "--no-bandit: disable bandit scan"
-    echo "--no-flake8: disable flake8 scan"
+    echo "--config: add config file, which can include the following flags:"
     echo
-    echo "frontend:"
-    echo "--no-tslint: disable tslint"
+    echo "    --no-shellcheck: disable shellcheck"
+    echo "    --no-jsonlint: disable jsonlint"
+    echo "    --no-yamllint: disable yamllint"
+    echo "    --no-trufflehog: disable trufflehog"
+    echo "    --no-bandit: disable bandit"
+    echo "    --no-flake8: disable falke8"
+    echo "    --no-estslint: disable ESlint & TSlint"
     exit 0
     ;;
   --type)
@@ -86,7 +85,7 @@ if [[ -n "$config_file" ]]; then
           [[ "$word" == "--no-trufflehog" ]] && no_trufflehog=true
           [[ "$word" == "--no-bandit" ]] && no_bandit=true
           [[ "$word" == "--no-flake8" ]] && no_flake8=true
-          [[ "$word" == "--no-eslint" ]] && no_eslint=true
+          [[ "$word" == "--no-estslint" ]] && no_estslint=true
         done
       done < "$config_file"
   else
@@ -225,9 +224,9 @@ fi
 
 
 if [[ " ${types[*]} " =~ 'typescript' ]]; then
-############################# ESLint #####################################
-  if [[ -z "$no_eslint" ]]; then
-    printf "Starting ES/TS linting process"
+############################# ESLint / TSLint #####################################
+  if [[ -z "$no_estslint" ]]; then
+    printf "Starting ES/TS linting process "
     tslint --init || exit_code=1
     if [[ $target_type == "directory" ]]; then
       esconf="$target"/.eslintrc.json
@@ -244,7 +243,7 @@ if [[ " ${types[*]} " =~ 'typescript' ]]; then
       printf ">> tslint...\n"
       tslint "$target" || exit_code=1
     fi
+    rm tslint.json
   fi
-  rm tslint.json
 fi
 exit $exit_code
