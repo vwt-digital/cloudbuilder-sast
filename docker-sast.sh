@@ -86,7 +86,7 @@ if [[ -n "$config_file" ]]; then
           [[ "$word" == "--no-trufflehog" ]] && no_trufflehog=true
           [[ "$word" == "--no-bandit" ]] && no_bandit=true
           [[ "$word" == "--no-flake8" ]] && no_flake8=true
-          [[ "$word" == "--no-estslint" ]] && no_eslint=true
+          [[ "$word" == "--no-eslint" ]] && no_eslint=true
         done
       done < "$config_file"
   else
