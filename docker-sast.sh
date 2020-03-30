@@ -11,10 +11,9 @@ fi
 
 declare types
 # Parse arguments
-args=("$@")
 while :
 do
-  case "${args[0]}" in
+  case "$1" in
   --help)
     echo "Usage:"
     echo "positional arguments:"
@@ -25,6 +24,7 @@ do
     echo
     echo "--help: print usage and exit"
     echo "--type TYPE: what sast tests to run. This argument can be added multiple times (options: python, typescript)."
+    echo "--context CONTEXT where this sast scan will be executed (options: commit-hook, cloudbuild)"
     echo "--no-shellcheck: disable shellcheck linter"
     echo "--no-yamllint: disable yamllint"
     echo "--no-jsonlint: disable jsonlint"
@@ -39,43 +39,23 @@ do
     exit 0
     ;;
   --type)
-    types=( "${types[@]}" "${args[1]}" )
-    args=( "${args[@]:2}" )
+    types=( "${types[@]}" "$2" )
+    shift 2
     ;;
   --target)
-    target=${args[1]}
-    args=( "${args[@]:2}" )
+    target="$2"
+    shift 2
     ;;
-  --no-shellcheck)
-    no_shellcheck=true
-    args=( "${args[@]:1}" )
+  --config)
+    config_file=$2
+    shift 2
     ;;
-  --no-jsonlint)
-    no_jsonlint=true
-    args=( "${args[@]:1}" )
-    ;;
-  --no-yamllint)
-    no_yamllint=true
-    args=( "${args[@]:1}" )
-    ;;
-  --no-trufflehog)
-    no_trufflehog=true
-    args=( "${args[@]:1}" )
-    ;;
-  --no-flake8)
-    no_flake8=true
-    args=( "${args[@]:1}" )
-    ;;
-  --no-bandit)
-    no_bandit=true
-    args=( "${args[@]:1}" )
-    ;;
-  --no-tslint)
-    no_tslint=true
-    args=( "${args[@]:1}" )
+  --context)
+    context="$2"
+    shift 2
     ;;
   -*)
-    echo "Error: Unknown argument: ${args[0]}" >&2
+    echo "Error: Unknown argument: $1" >&2
     echo "Use --help for possible arguments"
     exit 1
     ;;
@@ -89,7 +69,30 @@ done
 
 # Copy sast-config folder
 cp -r "$target"/sast-config/. . > /dev/null 2>&1
+# Read sast-config file
 
+if [[ -n "$config_file" ]]; then
+  if [[  -f "$config_file" ]]; then
+    # Add newline char to end of file to make sure it has at least one
+    echo "" >> "$config_file"
+
+    while IFS= read -r line; do
+        # Loop over words
+        for word in $line; do
+          # Append every word as an argument
+          [[ "$word" == "--no-shellcheck" ]] && no_shellcheck=true
+          [[ "$word" == "--no-jsonlint" ]] && no_jsonlint=true
+          [[ "$word" == "--no-yamllint" ]] && no_yamllint=true
+          [[ "$word" == "--no-trufflehog" ]] && no_trufflehog=true
+          [[ "$word" == "--no-bandit" ]] && no_bandit=true
+          [[ "$word" == "--no-flake8" ]] && no_flake8=true
+          [[ "$word" == "--no-tslint" ]] && no_tslint=true
+        done
+      done < "$config_file"
+  else
+    echo "target is not a file or does not exist" && exit 1
+  fi
+fi
 # Execute recursively on folders
 if [[ -d "$target" ]]; then
   target_type="directory"
@@ -97,6 +100,19 @@ elif [[  -f "$target" ]]; then
   target_type="file"
 else
   echo "target does not exist" && exit 1
+fi
+if  [[ -n ${context+x} ]]; then
+  if [[ "$context" == "commit-hook" ]]; then
+    echo "$context"
+  elif [[ "$context" == "cloudbuild" ]]; then
+    echo "$context"
+  fi
+fi
+
+# Move node_modules to workspace to hide it from passing tests
+if [[ -d "$target/node_modules" ]]; then
+  printf "Hide node_modules temporarily\n"
+  mv "$target"/node_modules "$target"/.node_modules
 fi
 
 ########################## ShellCheck ######################################
@@ -107,8 +123,7 @@ if [[ -z "$no_shellcheck" ]]; then
     # Add newline char to end of file to make sure it has at least one
     echo "" >> ".shellcheck"
     # Loop over lines
-    while IFS= read -r line
-    do
+    while IFS= read -r line; do
       # Loop over words
       for word in $line; do
         # Append every word as an argument
@@ -134,7 +149,7 @@ fi
 if [[ -z "$no_yamllint" ]]; then
   printf ">> yamllint...\n"
   if [[ $target_type == "directory" || "${target: -5}" == ".yaml" ]]; then
-      yamllint "$target" -d "{extends: default, rules: {line-length: {max: 120}}}" || exit_code=1
+      yamllint "$target" -d "{extends: default, ignore: .node_modules, rules: {line-length: {max: 120}}}" || exit_code=1
   fi
 fi
 
@@ -181,7 +196,7 @@ fi
 if [[ " ${types[*]} " =~ 'python' ]]; then
 ############################# Bandit #####################################
   # Bandit looks for .bandit config files by default
-  # installing bandit through pip3 instead of pip causes -q (quiet) to fail
+  # installing bandit thr ough pip3 instead of pip causes -q (quiet) to fail
   if [[ -z "$no_bandit" ]]; then
     printf ">> bandit...\n"
     if [[ $target_type == "directory" ]]; then
@@ -200,6 +215,12 @@ if [[ " ${types[*]} " =~ 'python' ]]; then
       flake8 --max-line-length=139 "$target" || exit_code=1
     fi
   fi
+fi
+
+
+if [[ -d "$target/.node_modules" ]]; then
+  printf "Unhide node_modules\n"
+  mv "$target"/.node_modules "$target"/node_modules
 fi
 
 
