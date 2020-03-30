@@ -13,30 +13,31 @@ RUN pip install -r truffleHog/requirements.txt \
     && chmod 755 /usr/local/bin/truffleHog.py
 
 RUN npm install -g typescript \
-    && npm install -g eslint
+    && npm install -g eslint \
+    && npm install -g tslint
 
 ARG CACHEBUST=1
 
-# COPY test.py test.py
+COPY test.py test.py
 COPY docker-sast.sh /usr/local/bin/
 COPY jsonlint.py /usr/local/bin
 
-# ADD tests tests
-# RUN cd tests/negative/trufflehog_highentropy \
-#     && git init . \
-#     && git add -A . \
-#     && git config --global user.email "test@example.com" \
-#     && git config --global user.name "test" \
-#     && git commit -a -m "Neg" \
-#     && cd ../../positive/trufflehog_ignoreline \
-#     && git init . \
-#     && git add -A . \
-#     && git commit -a -m "Pos" \
-#     && cd ../../../ \
-#     && python3 test.py
+ADD tests tests
+RUN cd tests/negative/trufflehog_highentropy \
+    && git init . \
+    && git add -A . \
+    && git config --global user.email "test@example.com" \
+    && git config --global user.name "test" \
+    && git commit -a -m "Neg" \
+    && cd ../../positive/trufflehog_ignoreline \
+    && git init . \
+    && git add -A . \
+    && git commit -a -m "Pos" \
+    && cd ../../../ \
+    && python3 test.py
 
 # cleanup /workspace
-# RUN rm -fr tests truffleHog test.py
+RUN rm -fr tests truffleHog test.py
 
 ARG CACHEBUST=0
 

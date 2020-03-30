@@ -227,19 +227,24 @@ fi
 if [[ " ${types[*]} " =~ 'typescript' ]]; then
 ############################# ESLint #####################################
   if [[ -z "$no_eslint" ]]; then
-    printf ">> eslint...\n"
+    printf "Starting ES/TS linting process"
+    tslint --init || exit_code=1
     if [[ $target_type == "directory" ]]; then
       esconf="$target"/.eslintrc.json
       if [[ -f "$esconf" ]]; then
+      printf ">> eslint...\n"
         cd "$target" || exit_code=1; return;
         eslint . --ext .ts || exit_code=1
         cd /
-      else
-        eslint "$target" --ext .ts --no-eslintrc || exit_code=1
+      else 
+        printf ">> tslint...\n"
+        tslint "$target"/**/*.ts || exit_code=1
       fi
     elif [[ "${target: -3}" == ".ts" ]]; then
-      eslint "$target" --ext .ts --no-eslintrc || exit_code=1
+      printf ">> tslint...\n"
+      tslint "$target" || exit_code=1
     fi
   fi
+  rm tslint.json
 fi
 exit $exit_code
