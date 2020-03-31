@@ -10,8 +10,6 @@ class TestSastScan(unittest.TestCase):
         for file in os.listdir('tests/positive'):
             with self.subTest("tests/positive/{}".format(file)):
                 self.assertEqual(subprocess.call('docker-sast.sh'
-                                                 ' --type python'
-                                                 ' --type typescript'
                                                  ' --target tests/positive/' + file, shell=True), 0)  # nosec
 
     def testNegative(self):
@@ -19,8 +17,6 @@ class TestSastScan(unittest.TestCase):
         for file in os.listdir('tests/negative'):
             with self.subTest("tests/negative/{}".format(file)):
                 self.assertEqual(subprocess.call('docker-sast.sh'
-                                                 ' --type python'
-                                                 ' --type typescript'
                                                  ' --target tests/negative/' + file, shell=True), 1)  # nosec
 
 

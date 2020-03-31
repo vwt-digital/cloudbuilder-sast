@@ -31,7 +31,7 @@ bandit:
 `.bandit`  
 flake8:
 `setup.cfg` `tox.ini` `.flake8`  
-tslint:
-`tslint.json` `tslint.yaml`
+eslint:
+`eslintrc.json` (Note that it is isn't hidden)
 
 For configuration options see the documentation of the respective tool.

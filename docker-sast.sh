@@ -10,7 +10,6 @@ if [[ "$#" -eq 0 ]]; then
   exit 0
 fi
 
-declare types
 # Parse arguments
 while :
 do
@@ -24,30 +23,15 @@ do
     echo "optional arguments:"
     echo
     echo "--help: print usage and exit"
-    echo "--type TYPE: what sast tests to run. This argument can be added multiple times (options: python, typescript)"
     echo "--context CONTEXT where this sast scan will be executed (options: commit-hook, cloudbuild)"
-    echo
-    echo "--config: add config file, which can include the following flags:"
-    echo
-    echo "    --no-shellcheck: disable shellcheck"
-    echo "    --no-jsonlint: disable jsonlint"
-    echo "    --no-yamllint: disable yamllint"
-    echo "    --no-trufflehog: disable trufflehog"
-    echo "    --no-bandit: disable bandit"
-    echo "    --no-flake8: disable falke8"
-    echo "    --no-eslint: disable ESlint"
     exit 0
-    ;;
-  --type)
-    types=( "${types[@]}" "$2" )
-    shift 2
     ;;
   --target)
     target="$2"
     shift 2
     ;;
   --config)
-    config_file=$2
+    config_file="$2"
     shift 2
     ;;
   --context)
@@ -102,10 +86,18 @@ else
   echo "target does not exist" && exit 1
 fi
 if  [[ -n ${context+x} ]]; then
-  if [[ "$context" == "commit-hook" ]]; then
-    echo "$context"
+  if [[ "$context" == "pre-commit" ]]; then
+    no_trufflehog=true
+  elif [[ "$context" == "post-commit" ]]; then
+    no_shellcheck=true
+    no_jsonlint=true
+    no_yamllint=true
+    no_bandit=true
+    no_flake8=true
+    no_eslint=true
   elif [[ "$context" == "cloudbuild" ]]; then
-    echo "$context"
+    #TODO: Change more settings based on context
+    :
   fi
 fi
 
@@ -193,29 +185,27 @@ if [[ -z "$no_trufflehog" && $target_type == "directory" ]]; then
   eval truffleHog.py --cleanup "${trufflehog_args[@]/#}" "${target}"  || exit_code=1
 fi
 
-if [[ " ${types[*]} " =~ 'python' ]]; then
 ############################# Bandit #####################################
-  # Bandit looks for .bandit config files by default
-  # installing bandit thr ough pip3 instead of pip causes -q (quiet) to fail
-  if [[ -z "$no_bandit" ]]; then
-    printf ">> bandit...\n"
-    if [[ $target_type == "directory" ]]; then
-      bandit -r -q -l "$target" -x .node_modules|| exit_code=1
-    elif [[ "${target: -3}" == ".py" ]]; then
-      bandit -q -l "$target" || exit_code=1
-    fi
+# Bandit looks for .bandit config files by default
+# installing bandit thr ough pip3 instead of pip causes -q (quiet) to fail
+if [[ -z "$no_bandit" ]]; then
+  printf ">> bandit...\n"
+  if [[ $target_type == "directory" ]]; then
+    bandit -r -q -l "$target" -x .node_modules|| exit_code=1
+  elif [[ "${target: -3}" == ".py" ]]; then
+    bandit -q -l "$target" || exit_code=1
   fi
+fi
 
 
 ############################# Flake8 #####################################
 # Flake8 looks for setup.cfg, tox.ini and .flake8 files by default
-  if [[ -z "$no_flake8" ]]; then
-    printf ">> flake8...\n"
-    if [[ $target_type == "directory" ]]; then
-      flake8 --max-line-length=139 "$target" --exclude .node_modules || exit_code=1
-    elif [[ "${target: -3}" == ".py" ]];then
-      flake8 --max-line-length=139 "$target" || exit_code=1
-    fi
+if [[ -z "$no_flake8" ]]; then
+  printf ">> flake8...\n"
+  if [[ $target_type == "directory" ]]; then
+    flake8 --max-line-length=139 "$target" --exclude .node_modules || exit_code=1
+  elif [[ "${target: -3}" == ".py" ]];then
+    flake8 --max-line-length=139 "$target" || exit_code=1
   fi
 fi
 
@@ -226,21 +216,20 @@ if [[ -d "$target/.node_modules" ]]; then
 fi
 
 
-if [[ " ${types[*]} " =~ 'typescript' ]]; then
 ############################# ESLint #####################################
-  if [[ -z "$no_eslint" ]]; then
-    printf ">> eslint...\n"
-    if [[ "$target_type" == "directory" ]]; then
-      if ls "$target"/**/*.ts >/dev/null 2>&1; then
-        [ -d "$target" ] && cd "$target"; exit_code=1
-        esconf=eslintrc.json
-        if [[ ! -f "$esconf" ]]; then
-          mv /usr/local/etc/eslintrc.json eslintrc.json
-        fi
-        eslint . -c eslintrc.json --ext .ts || exit_code=1
-        cd /
+if [[ -z "$no_eslint" ]]; then
+  printf ">> eslint...\n"
+  if [[ "$target_type" == "directory" ]]; then
+    if ls "$target"/**/*.ts >/dev/null 2>&1 && [[ -d "$target"/node_modules || -d node_modules ]]; then
+      [ -d "$target" ] && cd "$target"
+      esconf=eslintrc.json
+      if [[ ! -f "$esconf" ]]; then
+        mv /usr/local/etc/eslintrc.json eslintrc.json
       fi
+      eslint . -c eslintrc.json --ext .ts || exit_code=1
+      cd /
     fi
   fi
 fi
+
 exit $exit_code
