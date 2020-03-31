@@ -232,7 +232,7 @@ if [[ " ${types[*]} " =~ 'typescript' ]]; then
     printf ">> eslint...\n"
     if [[ "$target_type" == "directory" ]]; then
       if ls "$target"/**/*.ts >/dev/null 2>&1; then
-        [ -d "$target" ] && cd "$target"; exit_code=1
+        [ -d "$target" ] && cd "$target"
         esconf=eslintrc.json
         if [[ ! -f "$esconf" ]]; then
           mv /usr/local/etc/eslintrc.json eslintrc.json
