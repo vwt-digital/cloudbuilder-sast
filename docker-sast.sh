@@ -1,5 +1,6 @@
 #!  /usr/bin/env bash
 # shellcheck disable=SC2164
+# shellcheck disable=SC2006
 # keep exit values after pipe: this makes it so the build step will correctly exit with error if one of the tests fails
 set -o pipefail
 shopt -s globstar
@@ -220,7 +221,7 @@ fi
 if [[ -z "$no_eslint" ]]; then
   printf ">> eslint...\n"
   if [[ "$target_type" == "directory" ]]; then
-    if ls "$target"/**/*.ts >/dev/null 2>&1 && [[ -d "$target"/node_modules || -d node_modules ]]; then
+    if [[ `find "$target" -type f -name "*.ts" -not -path "$target/node_modules/*"` && -d "$target"/node_modules ]]; then
       [ -d "$target" ] && cd "$target"
       esconf=eslintrc.json
       if [[ ! -f "$esconf" ]]; then
