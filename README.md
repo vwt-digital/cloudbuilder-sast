@@ -32,6 +32,6 @@ bandit:
 flake8:
 `setup.cfg` `tox.ini` `.flake8`  
 eslint:
-`eslintrc.json` (Note that it is isn't hidden)
+`eslintrc.json` (Note that it isn't hidden)
 
 For configuration options see the documentation of the respective tool.
