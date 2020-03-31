@@ -88,6 +88,13 @@ fi
 if  [[ -n ${context+x} ]]; then
   if [[ "$context" == "pre-commit" ]]; then
     no_trufflehog=true
+  elif [[ "$context" == "post-commit" ]]; then
+    no_shellcheck=true
+    no_jsonlint=true
+    no_yamllint=true
+    no_bandit=true
+    no_flake8=true
+    no_eslint=true
   elif [[ "$context" == "cloudbuild" ]]; then
     #TODO: Change more settings based on context
     :
