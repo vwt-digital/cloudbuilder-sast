@@ -13,13 +13,14 @@ RUN pip install -r truffleHog/requirements.txt \
     && chmod 755 /usr/local/bin/truffleHog.py
 
 RUN npm install -g typescript \
-    && npm install -g tslint
+    && npm install -g eslint
 
 ARG CACHEBUST=1
 
 COPY test.py test.py
 COPY docker-sast.sh /usr/local/bin/
 COPY jsonlint.py /usr/local/bin
+COPY eslintrc.json /usr/local/etc
 
 ADD tests tests
 RUN cd tests/negative/trufflehog_highentropy \
