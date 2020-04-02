@@ -190,7 +190,7 @@ if [[ -z "$no_trufflehog" && $target_type == "directory" ]]; then
     done < ".trufflehog"
   fi
   printf  ">> trufflehog...\n"
-  eval truffleHog.py --cleanup --max_depth=1 "${trufflehog_args[@]/#}" "${target}"  || exit_code=1
+  eval truffleHog.py --regex --cleanup --max_depth=1 "${trufflehog_args[@]/#}" "${target}"  || exit_code=1
 else
   echo "Skipping trufflehog..."
 fi
