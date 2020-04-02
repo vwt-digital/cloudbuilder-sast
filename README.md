@@ -2,8 +2,11 @@
 
 This container runs a SAST scan with support for Google Cloud.
 
+
 ## Usage
+**NOTE: Trufflehog is called with `max_depth=1`. Manually run it to check entire history.**  
 Locally with only Docker: 
+
 ```shell script
 foo@bar:cloudbuilder-sast$ docker build . -t <image_name>
 docker run -v <directory to run from>:/tmp <image_name> --target /tmp --no-jsonlint
