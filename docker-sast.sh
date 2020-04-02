@@ -53,9 +53,14 @@ done
 cp -r "$target"/sast-config/. . > /dev/null 2>&1
 # Read sast-config file (.sast by default)
 
-config_file=".sast"
 
-if [[  -f "$config_file" ]]; then
+if [[  -f ".sast" ]]; then
+  config_file=".sast"
+elif [[ -f ".sast-config" ]]; then
+  config_file=".sast-config"
+fi
+
+if [[ -n "$config_file" ]]; then
   # Add newline char to end of file to make sure it has at least one
   echo "" >> "$config_file"
 
