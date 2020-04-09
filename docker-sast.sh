@@ -1,4 +1,5 @@
 #!  /usr/bin/env bash
+# TODO: fix these
 # shellcheck disable=SC2164
 # shellcheck disable=SC2006
 # keep exit values after pipe: this makes it so the build step will correctly exit with error if one of the tests fails
@@ -31,10 +32,6 @@ do
     target="$2"
     shift 2
     ;;
-  --config)
-    config_file="$2"
-    shift 2
-    ;;
   --context)
     context="$2"
     shift 2
@@ -54,30 +51,34 @@ done
 
 # Copy sast-config folder
 cp -r "$target"/sast-config/. . > /dev/null 2>&1
-# Read sast-config file
+# Read sast-config file (.sast by default)
+
+
+if [[  -f ".sast" ]]; then
+  config_file=".sast"
+elif [[ -f ".sast-config" ]]; then
+  config_file=".sast-config"
+fi
 
 if [[ -n "$config_file" ]]; then
-  if [[  -f "$config_file" ]]; then
-    # Add newline char to end of file to make sure it has at least one
-    echo "" >> "$config_file"
+  # Add newline char to end of file to make sure it has at least one
+  echo "" >> "$config_file"
 
-    while IFS= read -r line; do
-        # Loop over words
-        for word in $line; do
-          # Append every word as an argument
-          [[ "$word" == "--no-shellcheck" ]] && no_shellcheck=true
-          [[ "$word" == "--no-jsonlint" ]] && no_jsonlint=true
-          [[ "$word" == "--no-yamllint" ]] && no_yamllint=true
-          [[ "$word" == "--no-trufflehog" ]] && no_trufflehog=true
-          [[ "$word" == "--no-bandit" ]] && no_bandit=true
-          [[ "$word" == "--no-flake8" ]] && no_flake8=true
-          [[ "$word" == "--no-eslint" ]] && no_eslint=true
-        done
-      done < "$config_file"
-  else
-    echo "target is not a file or does not exist" && exit 1
-  fi
+  while IFS= read -r line; do
+      # Loop over words
+      for word in $line; do
+        # Append every word as an argument
+        [[ "$word" == "--no-shellcheck" ]] && no_shellcheck=true
+        [[ "$word" == "--no-jsonlint" ]] && no_jsonlint=true
+        [[ "$word" == "--no-yamllint" ]] && no_yamllint=true
+        [[ "$word" == "--no-trufflehog" ]] && no_trufflehog=true
+        [[ "$word" == "--no-bandit" ]] && no_bandit=true
+        [[ "$word" == "--no-flake8" ]] && no_flake8=true
+        [[ "$word" == "--no-eslint" ]] && no_eslint=true
+      done
+    done < "$config_file"
 fi
+
 # Execute recursively on folders
 if [[ -d "$target" ]]; then
   target_type="directory"
@@ -134,6 +135,8 @@ if [[ -z "$no_shellcheck" ]]; then
   elif [[ "${target: -3}" == ".sh" ]]; then
     shellcheck "$target" || exit_code=1
   fi
+else
+  echo "Skipping shellcheck..."
 fi
 
 
@@ -144,6 +147,8 @@ if [[ -z "$no_yamllint" ]]; then
   if [[ $target_type == "directory" || "${target: -5}" == ".yaml" ]]; then
       yamllint "$target" -d "{extends: default, ignore: .node_modules, rules: {line-length: {max: 120}}}" || exit_code=1
   fi
+else
+  echo "Skipping yamllint..."
 fi
 
 
@@ -162,6 +167,8 @@ if [[ -z "$no_jsonlint" ]]; then
     python /usr/local/bin/jsonlint.py "$target" > /dev/null 2>&1 || echo -e "\e[4m$target\e[0m"
     python /usr/local/bin/jsonlint.py "$target" || exit_code=1
   fi
+else
+  echo "Skipping jsonlint..."
 fi
 
 
@@ -183,8 +190,11 @@ if [[ -z "$no_trufflehog" && $target_type == "directory" ]]; then
     done < ".trufflehog"
   fi
   printf  ">> trufflehog...\n"
-  eval truffleHog.py --cleanup "${trufflehog_args[@]/#}" "${target}"  || exit_code=1
+  eval truffleHog.py --regex --cleanup --max_depth=1 "${trufflehog_args[@]/#}" "${target}"  || exit_code=1
+else
+  echo "Skipping trufflehog..."
 fi
+
 
 ############################# Bandit #####################################
 # Bandit looks for .bandit config files by default
@@ -196,6 +206,8 @@ if [[ -z "$no_bandit" ]]; then
   elif [[ "${target: -3}" == ".py" ]]; then
     bandit -q -l "$target" || exit_code=1
   fi
+else
+  echo "Skipping bandit..."
 fi
 
 
@@ -208,6 +220,8 @@ if [[ -z "$no_flake8" ]]; then
   elif [[ "${target: -3}" == ".py" ]];then
     flake8 --max-line-length=139 "$target" || exit_code=1
   fi
+else
+  echo "Skipping flake8..."
 fi
 
 
@@ -231,6 +245,8 @@ if [[ -z "$no_eslint" ]]; then
       cd /
     fi
   fi
+else
+  echo "Skipping eslint..."
 fi
 
 exit $exit_code
