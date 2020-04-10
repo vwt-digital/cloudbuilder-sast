@@ -61,7 +61,6 @@ fi
 # Copy sast-config folder
 if [[ $target_type == "directory" && -d "$target/sast-config" ]]; then
   cp -a "$target"/sast-config/. .
-  rm -r "$target"/sast-config
 fi
 
 # Read sast-config file (.sast by default)
