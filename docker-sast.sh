@@ -49,11 +49,21 @@ done
 # Check if target is set
 [ -z "$target" ] && echo "target not set" && exit 1
 
+# Execute recursively on folders
+if [[ -d "$target" ]]; then
+  target_type="directory"
+elif [[  -f "$target" ]]; then
+  target_type="file"
+else
+  echo "target does not exist" && exit 1
+fi
+
 # Copy sast-config folder
-cp -r "$target"/sast-config/. . > /dev/null 2>&1
+if [[ $target_type == "directory" ]]; then
+  cp -r "$target"/sast-config/. . > /dev/null 2>&1
+fi
+
 # Read sast-config file (.sast by default)
-
-
 if [[  -f ".sast" ]]; then
   config_file=".sast"
 elif [[ -f ".sast-config" ]]; then
@@ -79,14 +89,6 @@ if [[ -n "$config_file" ]]; then
     done < "$config_file"
 fi
 
-# Execute recursively on folders
-if [[ -d "$target" ]]; then
-  target_type="directory"
-elif [[  -f "$target" ]]; then
-  target_type="file"
-else
-  echo "target does not exist" && exit 1
-fi
 if  [[ -n ${context+x} ]]; then
   if [[ "$context" == "pre-commit" ]]; then
     no_trufflehog=true
