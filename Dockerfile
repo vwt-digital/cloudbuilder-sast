@@ -23,6 +23,12 @@ COPY jsonlint.py /usr/local/bin
 COPY eslintrc.json /usr/local/etc
 
 ADD tests tests
+RUN mkdir tests/node_modules \
+    && npm install --prefix tests \
+    eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser typescript \
+    && cp -r tests/node_modules tests/positive/eslint_positive \
+    && cp -r tests/node_modules tests/negative/eslint_negative
+
 RUN cd tests/negative/trufflehog_highentropy \
     && git init . \
     && git add -A . \
