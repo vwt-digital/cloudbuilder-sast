@@ -59,8 +59,9 @@ else
 fi
 
 # Copy sast-config folder
-if [[ $target_type == "directory" ]]; then
-  cp -r "$target"/sast-config/. . > /dev/null 2>&1
+if [[ $target_type == "directory" && -d "$target/sast-config" ]]; then
+  cp -a "$target"/sast-config/. .
+  rm -r "$target"/sast-config
 fi
 
 # Read sast-config file (.sast by default)
@@ -176,7 +177,7 @@ fi
 
 ########################## Trufflehog ####################################
 # SAST will look for a .trufflehog file
-if [[ -z "$no_trufflehog" && $target_type == "directory" ]]; then
+if [[ -z "$no_trufflehog" && $target_type == "directory" && -a "$target/.git" ]]; then
   # If config file is found, parse arguments
   if [[ -f ".trufflehog" ]]; then
     # Add newline char to end of file to make sure it has at least one
@@ -241,7 +242,7 @@ if [[ -z "$no_eslint" ]]; then
       [ -d "$target" ] && cd "$target"
       esconf=eslintrc.json
       if [[ ! -f "$esconf" ]]; then
-        mv /usr/local/etc/eslintrc.json eslintrc.json
+        cp /usr/local/etc/eslintrc.json eslintrc.json
       fi
       eslint . -c eslintrc.json --ext .ts || exit_code=1
       cd /
