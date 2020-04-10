@@ -198,11 +198,11 @@ fi
 
 ############################# Bandit #####################################
 # Bandit looks for .bandit config files by default
-# installing bandit thr ough pip3 instead of pip causes -q (quiet) to fail
+# installing bandit through pip3 instead of pip causes -q (quiet) to fail
 if [[ -z "$no_bandit" ]]; then
   printf ">> bandit...\n"
   if [[ $target_type == "directory" ]]; then
-    bandit -r -q -l "$target" -x .node_modules|| exit_code=1
+    bandit -r -q -l "$target" -x .node_modules || exit_code=1
   elif [[ "${target: -3}" == ".py" ]]; then
     bandit -q -l "$target" || exit_code=1
   fi
