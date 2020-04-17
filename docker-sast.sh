@@ -49,11 +49,21 @@ done
 # Check if target is set
 [ -z "$target" ] && echo "target not set" && exit 1
 
+# Execute recursively on folders
+if [[ -d "$target" ]]; then
+  target_type="directory"
+elif [[  -f "$target" ]]; then
+  target_type="file"
+else
+  echo "target does not exist" && exit 1
+fi
+
 # Copy sast-config folder
-cp -r "$target"/sast-config/. . > /dev/null 2>&1
+if [[ $target_type == "directory" && -d "$target/sast-config" ]]; then
+  cp -a "$target"/sast-config/. .
+fi
+
 # Read sast-config file (.sast by default)
-
-
 if [[  -f ".sast" ]]; then
   config_file=".sast"
 elif [[ -f ".sast-config" ]]; then
@@ -79,14 +89,6 @@ if [[ -n "$config_file" ]]; then
     done < "$config_file"
 fi
 
-# Execute recursively on folders
-if [[ -d "$target" ]]; then
-  target_type="directory"
-elif [[  -f "$target" ]]; then
-  target_type="file"
-else
-  echo "target does not exist" && exit 1
-fi
 if  [[ -n ${context+x} ]]; then
   if [[ "$context" == "pre-commit" ]]; then
     no_trufflehog=true
@@ -174,7 +176,7 @@ fi
 
 ########################## Trufflehog ####################################
 # SAST will look for a .trufflehog file
-if [[ -z "$no_trufflehog" && $target_type == "directory" ]]; then
+if [[ -z "$no_trufflehog" && $target_type == "directory" && -a "$target/.git" ]]; then
   # If config file is found, parse arguments
   if [[ -f ".trufflehog" ]]; then
     # Add newline char to end of file to make sure it has at least one
@@ -198,11 +200,11 @@ fi
 
 ############################# Bandit #####################################
 # Bandit looks for .bandit config files by default
-# installing bandit thr ough pip3 instead of pip causes -q (quiet) to fail
+# installing bandit through pip3 instead of pip causes -q (quiet) to fail
 if [[ -z "$no_bandit" ]]; then
   printf ">> bandit...\n"
   if [[ $target_type == "directory" ]]; then
-    bandit -r -q -l "$target" -x .node_modules|| exit_code=1
+    bandit -r -q -l "$target" -x .node_modules || exit_code=1
   elif [[ "${target: -3}" == ".py" ]]; then
     bandit -q -l "$target" || exit_code=1
   fi
@@ -239,7 +241,7 @@ if [[ -z "$no_eslint" ]]; then
       [ -d "$target" ] && cd "$target"
       esconf=eslintrc.json
       if [[ ! -f "$esconf" ]]; then
-        mv /usr/local/etc/eslintrc.json eslintrc.json
+        cp /usr/local/etc/eslintrc.json eslintrc.json
       fi
       eslint . -c eslintrc.json --ext .ts || exit_code=1
       cd /
