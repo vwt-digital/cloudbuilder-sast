@@ -55,7 +55,7 @@ if [[ -d "$target" ]]; then
 elif [[  -f "$target" ]]; then
   target_type="file"
 else
-  echo "target does not exist" && exit 1
+  echo "target $target does not exist" && exit 1
 fi
 
 # Copy sast-config folder
