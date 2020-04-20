@@ -6,11 +6,8 @@
 set -o pipefail
 shopt -s globstar
 exit_code=0
-# exit if arguments are empty
-if [[ "$#" -eq 0 ]]; then
-  printf "No arguments given \n"
-  exit 0
-fi
+
+target="/sast-files"
 
 # Parse arguments
 while :
@@ -20,7 +17,7 @@ do
     echo "Usage:"
     echo "positional arguments:"
     echo
-    echo "--target TARGET: the target to run on. SAST-scan will automatically run recursively on folders"
+    echo "--target TARGET: the target to run on. SAST-scan will automatically run recursively on folders. Will default to /sast-files if no target is set."
     echo
     echo "optional arguments:"
     echo
