@@ -6,11 +6,8 @@
 set -o pipefail
 shopt -s globstar
 exit_code=0
-# exit if arguments are empty
-if [[ "$#" -eq 0 ]]; then
-  printf "No arguments given \n"
-  exit 0
-fi
+
+target="/sast-files"
 
 # Parse arguments
 while :
@@ -20,7 +17,7 @@ do
     echo "Usage:"
     echo "positional arguments:"
     echo
-    echo "--target TARGET: the target to run on. SAST-scan will automatically run recursively on folders"
+    echo "--target TARGET: the target to run on. SAST-scan will automatically run recursively on folders. Will default to /sast-files if no target is set."
     echo
     echo "optional arguments:"
     echo
@@ -55,7 +52,7 @@ if [[ -d "$target" ]]; then
 elif [[  -f "$target" ]]; then
   target_type="file"
 else
-  echo "target does not exist" && exit 1
+  echo "target $target does not exist" && exit 1
 fi
 
 # Copy sast-config folder
@@ -204,7 +201,7 @@ fi
 if [[ -z "$no_bandit" ]]; then
   printf ">> bandit...\n"
   if [[ $target_type == "directory" ]]; then
-    bandit -r -q -l  -x .node_modules -s B105 "$target"|| exit_code=1
+    bandit -r -q -l  -x "$target"/.node_modules -s B105 "$target"|| exit_code=1
   elif [[ "${target: -3}" == ".py" ]]; then
     bandit -q -l "$target" || exit_code=1
   fi
