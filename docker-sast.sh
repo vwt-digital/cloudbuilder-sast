@@ -201,7 +201,7 @@ fi
 if [[ -z "$no_bandit" ]]; then
   printf ">> bandit...\n"
   if [[ $target_type == "directory" ]]; then
-    bandit -r -q -l  -x ./.node_modules -s B105 "$target"|| exit_code=1
+    bandit -r -q -l  -x "$target"/.node_modules -s B105 "$target"|| exit_code=1
   elif [[ "${target: -3}" == ".py" ]]; then
     bandit -q -l "$target" || exit_code=1
   fi
