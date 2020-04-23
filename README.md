@@ -72,6 +72,16 @@ rules:
 Since yamllint does not support both config_data and config_file, adding a config file overwrites this predefined 
 configuration. If you wish to use this configuration, make sure to add it to your new config file.
 
+### Bandit configuration
+Bandit is preconfigured with 
+```yaml
+[bandit]
+exclude: /.node_modules 
+skips: B105
+```
+Since Bandit does not support both command line arguments and a config file, adding a config file overwrites this predefined 
+configuration. If you wish to use this configuration, make sure to add it to your new config file.
+
 
 ## Excluding false positives
 **NOTE: Only exclude findings if you are absolutely certain it is a false positive.**  
