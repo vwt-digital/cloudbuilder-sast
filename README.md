@@ -55,6 +55,23 @@ eslint:
 `eslintrc.json` (Note that it isn't hidden)
 
 For configuration options see the documentation of the respective tool.
+### Yamllint configuration
+Yamllint is preconfigured with 
+```yaml
+---
+
+extends: default
+
+ignore:|
+  .node_modules,
+
+rules: 
+  line-length:
+    max: 120
+```
+Since yamllint does not support both config_data and config_file, adding a config file overwrites this predefined 
+configuration. If you wish to use this configuration, make sure to add it to your new config file.
+
 
 ## Excluding false positives
 **NOTE: Only exclude findings if you are absolutely certain it is a false positive.**  

@@ -97,7 +97,6 @@ if  [[ -n ${context+x} ]]; then
     no_flake8=true
     no_eslint=true
   elif [[ "$context" == "cloudbuild" ]]; then
-    #TODO: Change more settings based on context
     :
   fi
 fi
@@ -140,11 +139,23 @@ fi
 
 
 ########################## Yaml lint ######################################
-# Yamllint looks for .yamllint, yamllint.yaml and .yamllint.yml config files by default
+# Yamllint looks for .yamllint, .yamllint.yaml and .yamllint.yml config files by default
+if [[ -f ".yamllint" ]]; then
+  yamllint_config=".yamllint"
+elif [[ -f ".yamllint.yaml" ]]; then
+  yamllint_config=".yamllint.yaml"
+elif [[ -f ".yamllint.yml" ]]; then
+  yamllint_config=".yamllint.yml"
+fi
+if [[ -n $yamllint_config ]]; then
+  yamllint_config_arg="-c${yamllint_config}"
+else
+  yamllint_config_arg="-d {extends: default, ignore: .node_modules, rules: {line-length: {max: 120}}}"
+fi
 if [[ -z "$no_yamllint" ]]; then
   printf ">> yamllint...\n"
   if [[ $target_type == "directory" || "${target: -5}" == ".yaml" ]]; then
-      yamllint "$target" -d "{extends: default, ignore: .node_modules, rules: {line-length: {max: 120}}}" || exit_code=1
+      yamllint "$target" "${yamllint_config_arg}" || exit_code=1
   fi
 else
   echo "Skipping yamllint..."
