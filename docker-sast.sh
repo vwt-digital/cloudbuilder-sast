@@ -57,7 +57,9 @@ fi
 
 # Copy sast-config folder
 if [[ $target_type == "directory" && -d "$target/sast-config" ]]; then
+  shopt -s dotglob
   mv "$target"/sast-config/* "$target"
+  shopt -u dotglob
 fi
 
 # Read sast-config file (.sast by default)
