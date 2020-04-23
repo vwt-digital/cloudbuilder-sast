@@ -62,7 +62,7 @@ Yamllint is preconfigured with
 
 extends: default
 
-ignore:|
+ignore: |
   .node_modules,
 
 rules: 
