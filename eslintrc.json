@@ -20,5 +20,7 @@
         "@typescript-eslint"
     ],
     "rules": {
+    	"@typescript-eslint/ban-ts-ignore": "off",
+    	"@typescript-eslint/no-use-before-define": "off"
     }
 }
