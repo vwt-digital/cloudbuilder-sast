@@ -214,11 +214,12 @@ fi
 
 if [[ -z "$no_bandit" ]]; then
   printf ">> bandit...\n"
-  if [[ ! -f ".bandit" ]]; then
-    bandit_config_arg="-x $target/.node_modules -s B105"
-  fi
   if [[ $target_type == "directory" ]]; then
-    bandit -r -q -l "${bandit_config_arg}" "$target"|| exit_code=1
+    if [[ ! -f ".bandit" ]]; then
+      bandit -r -q -l -x "$target"/.node_modules -s B105 "$target"|| exit_code=1
+    else
+      bandit -r -q -l "$target"|| exit_code=1
+    fi
   elif [[ "${target: -3}" == ".py" ]]; then
     bandit -q -l "$target" || exit_code=1
   fi
