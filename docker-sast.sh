@@ -57,7 +57,9 @@ fi
 
 # Copy sast-config folder
 if [[ $target_type == "directory" && -d "$target/sast-config" ]]; then
-  cp -a "$target"/sast-config/. .
+  shopt -s dotglob
+  mv "$target"/sast-config/* "$target"
+  shopt -u dotglob
 fi
 
 # Read sast-config file (.sast by default)
@@ -97,7 +99,6 @@ if  [[ -n ${context+x} ]]; then
     no_flake8=true
     no_eslint=true
   elif [[ "$context" == "cloudbuild" ]]; then
-    #TODO: Change more settings based on context
     :
   fi
 fi
@@ -140,11 +141,23 @@ fi
 
 
 ########################## Yaml lint ######################################
-# Yamllint looks for .yamllint, yamllint.yaml and .yamllint.yml config files by default
+# Yamllint looks for .yamllint, .yamllint.yaml and .yamllint.yml config files by default
+if [[ -f ".yamllint" ]]; then
+  yamllint_config=".yamllint"
+elif [[ -f ".yamllint.yaml" ]]; then
+  yamllint_config=".yamllint.yaml"
+elif [[ -f ".yamllint.yml" ]]; then
+  yamllint_config=".yamllint.yml"
+fi
+if [[ -n $yamllint_config ]]; then
+  yamllint_config_arg="-c${yamllint_config}"
+else
+  yamllint_config_arg="-d {extends: default, ignore: .node_modules, rules: {line-length: {max: 120}}}"
+fi
 if [[ -z "$no_yamllint" ]]; then
   printf ">> yamllint...\n"
   if [[ $target_type == "directory" || "${target: -5}" == ".yaml" ]]; then
-      yamllint "$target" -d "{extends: default, ignore: .node_modules, rules: {line-length: {max: 120}}}" || exit_code=1
+      yamllint "$target" "${yamllint_config_arg}" || exit_code=1
   fi
 else
   echo "Skipping yamllint..."
@@ -198,10 +211,14 @@ fi
 ############################# Bandit #####################################
 # Bandit looks for .bandit config files by default
 # installing bandit through pip3 instead of pip causes -q (quiet) to fail
+
 if [[ -z "$no_bandit" ]]; then
   printf ">> bandit...\n"
+  if [[ ! -f ".bandit" ]]; then
+    bandit_config_arg="-x $target/.node_modules -s B105"
+  fi
   if [[ $target_type == "directory" ]]; then
-    bandit -r -q -l  -x "$target"/.node_modules -s B105 "$target"|| exit_code=1
+    bandit -r -q -l "${bandit_config_arg}" "$target"|| exit_code=1
   elif [[ "${target: -3}" == ".py" ]]; then
     bandit -q -l "$target" || exit_code=1
   fi
