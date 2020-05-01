@@ -46,6 +46,7 @@ done
 # Check if target is set
 [ -z "$target" ] && echo "target not set" && exit 1
 
+
 # Execute recursively on folders
 if [[ -d "$target" ]]; then
   target_type="directory"
@@ -58,7 +59,7 @@ fi
 # Copy sast-config folder
 if [[ $target_type == "directory" && -d "$target/sast-config" ]]; then
   shopt -s dotglob
-  mv "$target"/sast-config/* "$target"
+  mv "$target"/sast-config/* .
   shopt -u dotglob
 fi
 
@@ -108,6 +109,7 @@ if [[ -d "$target/node_modules" ]]; then
   printf "Hide node_modules temporarily\n"
   mv "$target"/node_modules "$target"/.node_modules
 fi
+
 
 ########################## ShellCheck ######################################
 # SAST will look for .shellcheck files
