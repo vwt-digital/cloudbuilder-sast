@@ -50,6 +50,7 @@ done
 # Execute recursively on folders
 if [[ -d "$target" ]]; then
   target_type="directory"
+  cd "$target" && target=.
 elif [[  -f "$target" ]]; then
   target_type="file"
 else
@@ -255,17 +256,15 @@ if [[ -z "$no_eslint" ]]; then
   printf ">> eslint...\n"
   if [[ "$target_type" == "directory" ]]; then
     if [[ `find "$target" -type f -name "*.ts" -not -path "$target/node_modules/*"` && -d "$target"/node_modules ]]; then
-      [ -d "$target" ] && cd "$target"
       esconf=eslintrc.json
       if [[ ! -f "$esconf" ]]; then
         cp /usr/local/etc/eslintrc.json eslintrc.json
       fi
       eslint . -c eslintrc.json --ext .ts || exit_code=1
-      cd /
     fi
   fi
 else
   echo "Skipping eslint..."
 fi
-
+[[ $target_type == "directory" ]] && cd /
 exit $exit_code
