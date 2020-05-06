@@ -232,11 +232,11 @@ fi
 
 
 ############################# Flake8 #####################################
-# Flake8 looks for tox.ini and .flake8 files by default
+# Flake8 looks for setup.cfg, tox.ini and .flake8 files by default
 if [[ -z "$no_flake8" ]]; then
   printf ">> flake8...\n"
   if [[ $target_type == "directory" ]]; then
-    if [[ ! -f ".flake8" && ! -f "tox.ini" ]]; then
+    if [[ ! -f ".flake8" && ! -f "tox.ini" && ! -f "setup.cfg" ]]; then
       flake8 --max-line-length=139 "$target" --exclude .node_modules || exit_code=1
     else
       flake8 "$target" || exit_code=1
