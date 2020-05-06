@@ -50,6 +50,7 @@ done
 # Execute recursively on folders
 if [[ -d "$target" ]]; then
   target_type="directory"
+  cd "$target" && target=.
 elif [[  -f "$target" ]]; then
   target_type="file"
 else
@@ -220,7 +221,7 @@ if [[ -z "$no_bandit" ]]; then
     if [[ ! -f ".bandit" ]]; then
       bandit -r -q -l -x "$target"/.node_modules -s B105 "$target"|| exit_code=1
     else
-      bandit -r -q -l "$target"|| exit_code=1
+      bandit -r -q -l "$target" || exit_code=1
     fi
   elif [[ "${target: -3}" == ".py" ]]; then
     bandit -q -l "$target" || exit_code=1
@@ -235,7 +236,12 @@ fi
 if [[ -z "$no_flake8" ]]; then
   printf ">> flake8...\n"
   if [[ $target_type == "directory" ]]; then
-    flake8 --max-line-length=139 "$target" --exclude .node_modules || exit_code=1
+    if [[ ! -f ".flake8" && ! -f "tox.ini" && ! -f "setup.cfg" ]]; then
+      flake8 --max-line-length=139 "$target" --exclude .node_modules || exit_code=1
+    else
+      flake8 "$target" || exit_code=1
+    fi
+
   elif [[ "${target: -3}" == ".py" ]];then
     flake8 --max-line-length=139 "$target" || exit_code=1
   fi
@@ -255,17 +261,15 @@ if [[ -z "$no_eslint" ]]; then
   printf ">> eslint...\n"
   if [[ "$target_type" == "directory" ]]; then
     if [[ `find "$target" -type f -name "*.ts" -not -path "$target/node_modules/*"` && -d "$target"/node_modules ]]; then
-      [ -d "$target" ] && cd "$target"
       esconf=eslintrc.json
       if [[ ! -f "$esconf" ]]; then
         cp /usr/local/etc/eslintrc.json eslintrc.json
       fi
       eslint . -c eslintrc.json --ext .ts || exit_code=1
-      cd /
     fi
   fi
 else
   echo "Skipping eslint..."
 fi
-
+[[ $target_type == "directory" ]] && cd /
 exit $exit_code
