@@ -221,7 +221,7 @@ if [[ -z "$no_bandit" ]]; then
     if [[ ! -f ".bandit" ]]; then
       bandit -r -q -l -x "$target"/.node_modules -s B105 "$target"|| exit_code=1
     else
-      bandit -r -q -l "$target"|| exit_code=1
+      bandit -r -q -l "$target" || exit_code=1
     fi
   elif [[ "${target: -3}" == ".py" ]]; then
     bandit -q -l "$target" || exit_code=1
@@ -232,11 +232,16 @@ fi
 
 
 ############################# Flake8 #####################################
-# Flake8 looks for setup.cfg, tox.ini and .flake8 files by default
+# Flake8 looks for tox.ini and .flake8 files by default
 if [[ -z "$no_flake8" ]]; then
   printf ">> flake8...\n"
   if [[ $target_type == "directory" ]]; then
-    flake8 --max-line-length=139 "$target" --exclude .node_modules || exit_code=1
+    if [[ ! -f ".flake8" && ! -f "tox.ini" ]]; then
+      flake8 --max-line-length=139 "$target" --exclude .node_modules || exit_code=1
+    else
+      flake8 "$target" || exit_code=1
+    fi
+
   elif [[ "${target: -3}" == ".py" ]];then
     flake8 --max-line-length=139 "$target" || exit_code=1
   fi
