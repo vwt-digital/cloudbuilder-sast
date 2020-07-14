@@ -50,7 +50,9 @@ done
 # Execute recursively on folders
 if [[ -d "$target" ]]; then
   target_type="directory"
-  cd "$target" && target=.
+  target_copy="/directory"
+  cp -r "$target" "$target_copy"
+  cd "$target_copy" && target=.
 elif [[  -f "$target" ]]; then
   target_type="file"
 else
