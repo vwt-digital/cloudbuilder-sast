@@ -51,6 +51,7 @@ done
 if [[ -d "$target" ]]; then
   target_type="directory"
   target_copy="/directory"
+  rm -rf "/directory"
   cp -r "$target" "$target_copy"
   cd "$target_copy" && target=.
 elif [[  -f "$target" ]]; then
@@ -111,6 +112,8 @@ fi
 if [[ -d "$target/node_modules" ]]; then
   printf "Hide node_modules temporarily\n"
   mv "$target"/node_modules "$target"/.node_modules
+else
+  echo "No node_modules found"
 fi
 
 
