@@ -123,7 +123,7 @@ It is possible to exclude single lines for some tools:
 * **Shellcheck:** add a line above containing `# shellcheck disable=SCXXXX` where XXXX is the check you want to disable.
  Multiple checks can be disabled by comma separation (e.g. `SC1234,SC1235,SC1236`).
 * **Yamllint:** yamllint does not allow single line exclusions
-* **Trufflehog:** add a comment after the line with `no_trufflehog`
+* **Trufflehog:** add a comment after the line with `no_trufflehog` or use --entropy-exclude-regex.
 * **Bandit:** add a `#nosec` comment after the line
 * **Flake8:** add a `# noqa: A000` comment after the line where A000 is the check you want to disable. Multiple checks can 
 be disabled by comma separation (e.g. `E123,W123,F123`).
