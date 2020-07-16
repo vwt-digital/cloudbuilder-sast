@@ -43,6 +43,7 @@ do
     ;;
   esac
 done
+
 # Check if target is set
 [ -z "$target" ] && echo "target not set" && exit 1
 
@@ -50,10 +51,10 @@ done
 # Execute recursively on folders
 if [[ -d "$target" ]]; then
   target_type="directory"
-  target_copy="/directory"
+  directory_copy="/directory"
   rm -rf "/directory"
-  cp -r "$target" "$target_copy"
-  cd "$target_copy" && target=.
+  cp -r "$target" "$directory_copy"
+  cd "$directory_copy" && target=.
 elif [[  -f "$target" ]]; then
   target_type="file"
 else
@@ -195,22 +196,33 @@ fi
 ########################## Trufflehog ####################################
 # SAST will look for a .trufflehog file
 if [[ -z "$no_trufflehog" && $target_type == "directory" && -a "$target/.git" ]]; then
-  # If config file is found, parse arguments
-  if [[ -f ".trufflehog" ]]; then
-    # Add newline char to end of file to make sure it has at least one
-    echo "" >> ".trufflehog"
-    # Loop over lines
-    while IFS= read -r line
-    do
-      # Loop over words
-      for word in $line; do
-        # Append every word as an argument
-        trufflehog_args=( "${trufflehog_args[@]}" "$word" )
-      done
-    done < ".trufflehog"
-  fi
-  printf  ">> trufflehog...\n"
-  eval truffleHog.py --regex --cleanup --max_depth=1 "${trufflehog_args[@]/#}" "${target}"  || exit_code=1
+  echo ">> Recursively checking trufflehog:"
+  while IFS=$'\n' read -r d
+  do
+    cd "$d"
+    # If config file is found, parse arguments
+    if [[ -f ".trufflehog" ]]; then
+      # Add newline char to end of file to make sure it has at least one
+      echo "" >> ".trufflehog"
+      # Loop over lines
+      while IFS= read -r line
+      do
+        # Loop over words
+        for word in $line; do
+          # Append every word as an argument 
+          trufflehog_args=( "${trufflehog_args[@]}" "$word" )
+        done
+      done < ".trufflehog"
+    fi
+    git_url=$(git config --get remote.origin.url)
+    if [ -z "$git_url" ]
+    then
+      git_url="local repository"
+    fi
+    printf  ">> running trufflehog on %s in %s ...\n" "$git_url" "$d"
+    eval truffleHog.py --regex --cleanup --max_depth=1 "${trufflehog_args[@]/#}" "${target}"  || exit_code=1
+    cd "$target"
+  done< <(find . -name .git -type d -exec dirname {} \;)
 else
   echo "Skipping trufflehog..."
 fi
