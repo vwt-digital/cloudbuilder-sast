@@ -220,6 +220,10 @@ if [[ -z "$no_trufflehog" && $target_type == "directory" && -a "$target/.git" ]]
       git_url="local repository"
     fi
     printf  ">> running trufflehog on %s in %s ...\n" "$git_url" "$d"
+    thrules=thrules.json
+    if [[ ! -f "$thrules" ]]; then
+      cp /usr/local/etc/thrules.json thrules.json
+    fi
     eval truffleHog.py --regex --cleanup --max_depth=1 "${trufflehog_args[@]/#}" "${target}" --rules thrules.json  || exit_code=1
     cd "$target"
   done< <(find . -name .git -type d -exec dirname {} \;)

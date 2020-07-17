@@ -10,8 +10,7 @@ RUN apt update \
     && git clone --single-branch --branch develop https://github.com/vwt-digital/truffleHog.git
 RUN pip install -r truffleHog/requirements.txt \
     && cp truffleHog/truffleHog/truffleHog.py /usr/local/bin \
-    && chmod 755 /usr/local/bin/truffleHog.py \
-    && cp thrules.json /usr/local/bin
+    && chmod 755 /usr/local/bin/truffleHog.py
 
 RUN npm install -g typescript \
     && npm install -g eslint
@@ -22,6 +21,7 @@ COPY test.py test.py
 COPY docker-sast.sh /usr/local/bin/
 COPY jsonlint.py /usr/local/bin
 COPY eslintrc.json /usr/local/etc
+COPY thrules.json /usr/local/etc
 
 ADD tests tests
 RUN mkdir tests/node_modules \

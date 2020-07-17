@@ -111,7 +111,7 @@ It is possible to disable rules per project in the config files:
 * **Yamllint:** add a `rules` section to the Yamllint config file. [docs](https://yamllint.readthedocs.io/en/stable/configuration.html)
 * **Trufflehog:** it is not possible to disable a rule for the entire project. It is however possible to ignore the 
 default regexes and specify a custom list of regexes. This is done by adding `--rules trufflehog_rules.json` to the
-Trufflehog config file.
+Trufflehog config file. If no `--rules trufflehog_rules.json` is added, a default DAT rule list is applied.
 * **Bandit:** add a `skips` section to the Bandit config file. [docs](https://bandit.readthedocs.io/en/latest/config.html)
 * **Flake8:** add an `ignore` section to the Flake8 config file. [docs](https://flake8.pycqa.org/en/latest/user/configuration.html)
 * **Eslint:** see the
