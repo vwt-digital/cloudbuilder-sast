@@ -1,0 +1,4 @@
+{
+    "Azure Client Secret Key": "(?=.*_)(?=.*-)(?=.*~)[a-zA-Z0-9-_~]{34}",
+    "Generic API Key": "AIza[0-9a-zA-Z-_]{35}"
+}

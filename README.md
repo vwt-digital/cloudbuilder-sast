@@ -111,7 +111,7 @@ It is possible to disable rules per project in the config files:
 * **Yamllint:** add a `rules` section to the Yamllint config file. [docs](https://yamllint.readthedocs.io/en/stable/configuration.html)
 * **Trufflehog:** it is not possible to disable a rule for the entire project. It is however possible to ignore the 
 default regexes and specify a custom list of regexes. This is done by adding `--rules trufflehog_rules.json` to the
-Trufflehog config file.
+Trufflehog config file. If no `--rules trufflehog_rules.json` is added, a default DAT rule list is applied.
 * **Bandit:** add a `skips` section to the Bandit config file. [docs](https://bandit.readthedocs.io/en/latest/config.html)
 * **Flake8:** add an `ignore` section to the Flake8 config file. [docs](https://flake8.pycqa.org/en/latest/user/configuration.html)
 * **Eslint:** see the
@@ -123,7 +123,7 @@ It is possible to exclude single lines for some tools:
 * **Shellcheck:** add a line above containing `# shellcheck disable=SCXXXX` where XXXX is the check you want to disable.
  Multiple checks can be disabled by comma separation (e.g. `SC1234,SC1235,SC1236`).
 * **Yamllint:** yamllint does not allow single line exclusions
-* **Trufflehog:** add a comment after the line with `no_trufflehog`
+* **Trufflehog:** add a comment after the line with `no_trufflehog` or use --entropy-exclude-regex.
 * **Bandit:** add a `#nosec` comment after the line
 * **Flake8:** add a `# noqa: A000` comment after the line where A000 is the check you want to disable. Multiple checks can 
 be disabled by comma separation (e.g. `E123,W123,F123`).
