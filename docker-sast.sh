@@ -201,14 +201,10 @@ if [[ -z "$no_schemavalidator" ]]; then
       for f in "$target"/**/*.json; do
         # if glob does not match, stop execution
         [[ -e "$f" ]] || continue
-        echo "$f"
-        echo "$target"
-        python /usr/local/bin/schemavalidator/schema_validator.py -s "$f" -sf "$target" || exit_code=1
+        python /usr/local/bin/schemavalidator/schema_validator.py -s "$f" -sf "$(dirname "$f")" || exit_code=1
       done
   elif [[ "${target: -5}" == ".json" ]]; then
-    echo "$target"
-    echo "$PWD"
-    python /usr/local/bin/schemavalidator/schema_validator.py -s "$target" -sf "$PWD" || exit_code=1
+    python /usr/local/bin/schemavalidator/schema_validator.py -s "$target" -sf "$(dirname "$target")" || exit_code=1
   fi
 else
   echo "Skipping schemavalidator..."
