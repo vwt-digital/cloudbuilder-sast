@@ -24,8 +24,6 @@ COPY jsonlint.py /usr/local/bin
 COPY eslintrc.json /usr/local/etc
 COPY thrules.json /usr/local/etc
 
-COPY schemavalidator /usr/local/bin/schemavalidator
-
 ADD tests tests
 RUN mkdir tests/node_modules \
     && npm install --prefix tests \
