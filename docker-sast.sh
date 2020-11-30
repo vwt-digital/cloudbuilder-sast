@@ -47,7 +47,6 @@ done
 # Check if target is set
 [ -z "$target" ] && echo "target not set" && exit 1
 
-
 # Execute recursively on folders
 if [[ -d "$target" ]]; then
   target_type="directory"
@@ -85,6 +84,7 @@ if [[ -n "$config_file" ]]; then
         # Append every word as an argument
         [[ "$word" == "--no-shellcheck" ]] && no_shellcheck=true
         [[ "$word" == "--no-jsonlint" ]] && no_jsonlint=true
+        [[ "$word" == "--no-schemavalidator" ]] && no_schemavalidator=true
         [[ "$word" == "--no-yamllint" ]] && no_yamllint=true
         [[ "$word" == "--no-trufflehog" ]] && no_trufflehog=true
         [[ "$word" == "--no-bandit" ]] && no_bandit=true
@@ -100,6 +100,7 @@ if  [[ -n ${context+x} ]]; then
   elif [[ "$context" == "post-commit" ]]; then
     no_shellcheck=true
     no_jsonlint=true
+    no_schemavalidator=true
     no_yamllint=true
     no_bandit=true
     no_flake8=true
@@ -190,6 +191,23 @@ if [[ -z "$no_jsonlint" ]]; then
   fi
 else
   echo "Skipping jsonlint..."
+fi
+
+########################## Schemavalidator ######################################
+# Custom schema validator checks if there are jsonschema's and if they are conform their meta schema
+if [[ -z "$no_schemavalidator" ]]; then
+  printf ">> schemavalidator...\n"
+  if [[ $target_type == "directory" ]]; then
+      for f in "$target"/**/*.json; do
+        # if glob does not match, stop execution
+        [[ -e "$f" ]] || continue
+        python /usr/local/bin/schemavalidator/schema_validator.py -s "$f" -sf "$target" || exit_code=1
+      done
+  elif [[ "${target: -5}" == ".json" ]]; then
+    python /usr/local/bin/schemavalidator/schema_validator.py -s "$target" -sf "$PWD" || exit_code=1
+  fi
+else
+  echo "Skipping schemavalidator..."
 fi
 
 

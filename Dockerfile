@@ -1,7 +1,8 @@
 FROM python:3.7-slim
 WORKDIR /workspace
 
-RUN pip install bandit flake8 shellcheck-py yamllint
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
 
 RUN apt update \
     && apt install -y curl git \
@@ -22,6 +23,8 @@ COPY docker-sast.sh /usr/local/bin/
 COPY jsonlint.py /usr/local/bin
 COPY eslintrc.json /usr/local/etc
 COPY thrules.json /usr/local/etc
+
+COPY schemavalidator /usr/local/bin/schemavalidator
 
 ADD tests tests
 RUN mkdir tests/node_modules \
