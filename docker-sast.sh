@@ -47,7 +47,6 @@ done
 # Check if target is set
 [ -z "$target" ] && echo "target not set" && exit 1
 
-
 # Execute recursively on folders
 if [[ -d "$target" ]]; then
   target_type="directory"
@@ -191,7 +190,6 @@ if [[ -z "$no_jsonlint" ]]; then
 else
   echo "Skipping jsonlint..."
 fi
-
 
 ########################## Trufflehog ####################################
 # SAST will look for a .trufflehog file
