@@ -256,13 +256,13 @@ if [[ -z "$no_flake8" ]]; then
   printf ">> flake8...\n"
   if [[ $target_type == "directory" ]]; then
     if [[ ! -f ".flake8" && ! -f "tox.ini" && ! -f "setup.cfg" ]]; then
-      flake8 --max-complexity=15 --max-line-length=139 "$target" --exclude .node_modules || exit_code=1
+      flake8 --max-complexity=10 --max-line-length=139 "$target" --exclude .node_modules || exit_code=1
     else
       flake8 "$target" || exit_code=1
     fi
 
   elif [[ "${target: -3}" == ".py" ]];then
-    flake8 --max-complexity=15 --max-line-length=139 "$target" || exit_code=1
+    flake8 --max-complexity=10 --max-line-length=139 "$target" || exit_code=1
   fi
 else
   echo "Skipping flake8..."
