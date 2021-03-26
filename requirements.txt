@@ -8,7 +8,7 @@ pathspec==0.8.1
 pbr==5.5.1
 pycodestyle==2.6.0
 pyflakes==2.2.0
-PyYAML==5.3.1
+PyYAML==5.4
 shellcheck-py==0.7.1.1
 six==1.15.0
 smmap==3.0.4
