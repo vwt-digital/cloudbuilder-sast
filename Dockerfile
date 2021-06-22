@@ -23,6 +23,8 @@ COPY docker-sast.sh /usr/local/bin/
 COPY jsonlint.py /usr/local/bin
 COPY eslintrc.json /usr/local/etc
 COPY thrules.json /usr/local/etc
+COPY thexclude.txt /usr/local/etc
+COPY .trufflehog /usr/local/etc
 
 ADD tests tests
 RUN mkdir tests/node_modules \

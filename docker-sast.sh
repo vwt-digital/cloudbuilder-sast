@@ -199,19 +199,21 @@ if [[ -z "$no_trufflehog" && $target_type == "directory" && -a "$target/.git" ]]
   do
     cd "$d"
     # If config file is found, parse arguments
-    if [[ -f ".trufflehog" ]]; then
-      # Add newline char to end of file to make sure it has at least one
-      echo "" >> ".trufflehog"
-      # Loop over lines
-      while IFS= read -r line
-      do
-        # Loop over words
-        for word in $line; do
-          # Append every word as an argument 
-          trufflehog_args=( "${trufflehog_args[@]}" "$word" )
-        done
-      done < ".trufflehog"
+    if [[ ! -f ".trufflehog" ]]; then
+      cp /usr/local/etc/thexclude.txt thexclude.txt
+      cp /usr/local/etc/.trufflehog .trufflehog
     fi
+    # Add newline char to end of file to make sure it has at least one
+    echo "" >> ".trufflehog"
+    # Loop over lines
+    while IFS= read -r line
+    do
+      # Loop over words
+      for word in $line; do
+        # Append every word as an argument
+        trufflehog_args=( "${trufflehog_args[@]}" "$word" )
+      done
+    done < ".trufflehog"
     git_url=$(git config --get remote.origin.url)
     if [ -z "$git_url" ]
     then
