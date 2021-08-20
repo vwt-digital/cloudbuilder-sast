@@ -13,6 +13,10 @@ RUN pip install -r truffleHog/requirements.txt \
     && cp truffleHog/truffleHog/truffleHog.py /usr/local/bin \
     && chmod 755 /usr/local/bin/truffleHog.py
 
+RUN apt-get update && \
+    apt-get install -y nodejs \
+    npm  
+
 RUN npm install -g typescript \
     && npm install -g eslint
 
