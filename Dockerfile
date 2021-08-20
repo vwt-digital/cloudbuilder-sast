@@ -13,6 +13,8 @@ RUN pip install -r truffleHog/requirements.txt \
     && cp truffleHog/truffleHog/truffleHog.py /usr/local/bin \
     && chmod 755 /usr/local/bin/truffleHog.py
 
+RUN npm install -g npm
+
 RUN npm install -g typescript \
     && npm install -g eslint
 
